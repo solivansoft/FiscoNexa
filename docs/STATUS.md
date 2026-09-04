@@ -15,7 +15,11 @@
 
 ## Proximo passo recomendado
 
-Executar uma fatia vertical Delphi/WMLC no Ubuntu contendo:
+Executar `AUTH-001` do [ledger](LEDGER.md): contrato de credencial humana,
+sessao, expiracao, revogacao e testes negativos. As proximas rotas, eventos e
+camadas estao inventariados no mesmo documento por dependencia.
+
+O alvo da primeira fatia vertical permanece:
 
 - Empresa, CNPJ, usuario e permissao.
 - Credencial de integracao do ERP.

@@ -1,0 +1,12 @@
+# Dependencias reprodutiveis, baixadas por scripts/bootstrap-vendors.bat.
+vendor/
+
+# Configuracao e dados locais.
+.env
+bin/
+build/
+obj/
+*.dcu
+*.dcp
+*.rsm
+*.local
