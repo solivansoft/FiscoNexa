@@ -36,9 +36,9 @@ try {
   $deadline = (Get-Date).AddSeconds(10)
   do {
     try {
-      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/health' -TimeoutSec 1
-      if ($response.status -eq 'ok') {
-        Write-Output 'Smoke test aprovado: GET /health respondeu status=ok.'
+      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/saude' -TimeoutSec 1
+      if ($response.situacao -eq 'disponivel') {
+        Write-Output 'Smoke test aprovado: GET /saude respondeu situacao=disponivel.'
         exit 0
       }
     } catch {
@@ -46,7 +46,7 @@ try {
     }
   } while ((Get-Date) -lt $deadline)
 
-  throw 'GET /health nao respondeu status=ok dentro de 10 segundos.'
+  throw 'GET /saude nao respondeu situacao=disponivel dentro de 10 segundos.'
 } finally {
   if (-not $process.HasExited) {
     Stop-Process -Id $process.Id -Force

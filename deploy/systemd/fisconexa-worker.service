@@ -1,0 +1,24 @@
+[Unit]
+Description=FiscoNexa ciclo fiscal elegivel
+Wants=network-online.target
+After=network-online.target fisconexa-api.service
+
+[Service]
+Type=oneshot
+User=fisconexa
+Group=fisconexa
+WorkingDirectory=/opt/fisconexa
+EnvironmentFile=/etc/fisconexa/fisconexa.env
+Environment=TZ=UTC
+Environment=FISCONEXA_WORKER_ID=%H-worker
+Environment=FISCONEXA_WORKER_BATCH_SIZE=1
+Environment=FISCONEXA_WORKER_LEASE_SECONDS=7200
+ExecStart=/opt/fisconexa/FiscoNexa.Worker
+TimeoutStartSec=65min
+TimeoutStopSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fisconexa-worker
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077

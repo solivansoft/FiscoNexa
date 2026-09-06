@@ -23,8 +23,12 @@ if not exist "%ROOT%\build\win64\dcu" mkdir "%ROOT%\build\win64\dcu"
 call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
 if errorlevel 1 exit /b 1
 
-dcc64 -B -DRELEASE -$D- -$L- -$Y- -O+ -E"%ROOT%\bin\win64" -N0"%ROOT%\build\win64\dcu" -NS"System;Xml;Data;Datasnap;Web;Soap;Winapi;Vcl" -U"%ROOT%\src\api";"%ROOT%\src\db";"%ROOT%\vendor\horse\src" "%ROOT%\apps\api\FiscoNexa.Api.dpr"
-exit /b %errorlevel%
+dcc64 -B -DRELEASE -$D- -$L- -$Y- -O+ -E"%ROOT%\bin\win64" -N0"%ROOT%\build\win64\dcu" -NS"System;Xml;Data;Datasnap;Web;Soap;Winapi;Vcl" -U"%ROOT%\src\api";"%ROOT%\src\application";"%ROOT%\src\db";"%ROOT%\src\integrations";"%ROOT%\src\operations";"%ROOT%\src\persistence";"%ROOT%\src\persistence\schema";"%ROOT%\vendor\horse\src";"C:\Program Files (x86)\Devart\UniDAC for RAD Studio 12\Lib\Win64" "%ROOT%\apps\api\FiscoNexa.Api.dpr"
+if errorlevel 1 exit /b 1
+
+copy /Y "%ROOT%\vendor\postgres-client\pgsql\bin\libcrypto-3-x64.dll" "%ROOT%\bin\win64\" >nul
+if errorlevel 1 exit /b 1
+exit /b 0
 
 :linux64
 set "ROOT=%~dp0.."

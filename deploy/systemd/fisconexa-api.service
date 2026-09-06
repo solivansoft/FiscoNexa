@@ -1,0 +1,26 @@
+[Unit]
+Description=FiscoNexa API
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=fisconexa
+Group=fisconexa
+WorkingDirectory=/opt/fisconexa
+EnvironmentFile=/etc/fisconexa/fisconexa.env
+Environment=TZ=UTC
+ExecStart=/opt/fisconexa/FiscoNexa.Api
+Restart=always
+RestartSec=10s
+TimeoutStopSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fisconexa-api
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

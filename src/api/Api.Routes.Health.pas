@@ -11,12 +11,11 @@ uses
 
 procedure RegisterHealthRoute;
 begin
-  THorse.Get('/health',
+  THorse.Get('/saude',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     begin
-      AResponse.ContentType('application/json').Send('{"status":"ok"}');
+      AResponse.ContentType('application/json').Send('{"situacao":"disponivel"}');
     end);
 end;
 
 end.
-

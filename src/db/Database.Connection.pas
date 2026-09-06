@@ -3,26 +3,22 @@ unit Database.Connection;
 interface
 
 uses
-  FireDAC.Comp.Client;
+  Uni;
 
 type
   TDatabaseConnection = class
   public
-    class function OpenFromEnvironment: TFDConnection; static;
+    class function OpenFromEnvironment: TUniConnection; static;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
-  FireDAC.DApt,
-  FireDAC.Phys.PG,
-  FireDAC.Phys.PGDef,
-  FireDAC.Stan.Async,
-  FireDAC.Stan.Def,
-  FireDAC.Stan.Intf,
-  FireDAC.Stan.Option,
-  FireDAC.Stan.Param;
+  PostgreSQLUniProvider,
+  System.SysUtils;
+
+var
+  PostgreSQLProvider: TPostgreSQLUniProvider;
 
 function RequiredEnvironmentValue(const AName: string): string;
 begin
@@ -31,22 +27,29 @@ begin
     raise EInvalidOpException.Create('Variavel de ambiente obrigatoria ausente: ' + AName);
 end;
 
-class function TDatabaseConnection.OpenFromEnvironment: TFDConnection;
+class function TDatabaseConnection.OpenFromEnvironment: TUniConnection;
 begin
-  Result := TFDConnection.Create(nil);
+  Result := TUniConnection.Create(nil);
   try
-    Result.LoginPrompt := False;
-    Result.DriverName := 'PG';
-    Result.Params.Values['Server'] := RequiredEnvironmentValue('FISCONEXA_DB_HOST');
-    Result.Params.Values['Port'] := RequiredEnvironmentValue('FISCONEXA_DB_PORT');
-    Result.Params.Values['Database'] := RequiredEnvironmentValue('FISCONEXA_DB_NAME');
-    Result.Params.Values['User_Name'] := RequiredEnvironmentValue('FISCONEXA_DB_USER');
-    Result.Params.Values['Password'] := RequiredEnvironmentValue('FISCONEXA_DB_PASSWORD');
-    Result.Connected := True;
+    Result.ProviderName := 'PostgreSQL';
+    Result.Server := RequiredEnvironmentValue('FISCONEXA_DB_HOST');
+    Result.Port := StrToInt(RequiredEnvironmentValue('FISCONEXA_DB_PORT'));
+    Result.Database := RequiredEnvironmentValue('FISCONEXA_DB_NAME');
+    Result.Username := RequiredEnvironmentValue('FISCONEXA_DB_USER');
+    Result.Password := RequiredEnvironmentValue('FISCONEXA_DB_PASSWORD');
+    Result.Connect;
   except
     Result.Free;
     raise;
   end;
 end;
+
+initialization
+
+PostgreSQLProvider := TPostgreSQLUniProvider.Create(nil);
+
+finalization
+
+PostgreSQLProvider.Free;
 
 end.

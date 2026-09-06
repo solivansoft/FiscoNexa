@@ -3,19 +3,27 @@ unit Api.Server;
 interface
 
 procedure RunApi;
+procedure BootstrapAdmin(const AEmail, APassword: string);
 
 implementation
 
 uses
   Horse,
-  FireDAC.Comp.Client,
+  Api.Routes.AdminErps,
+  Api.Routes.Auth,
+  Api.Routes.ErpCompanies,
+  Api.Routes.ErpMonitoring,
+  Api.Routes.ErpModules,
+  Uni,
+  Api.Routes.ErpDocuments,
   Api.Routes.Health,
   Database.Connection,
-  Database.Migrations;
+  Database.Migrations,
+  Operations.Authentication;
 
 procedure ApplyMigrations;
 var
-  Connection: TFDConnection;
+  Connection: TUniConnection;
 begin
   Connection := TDatabaseConnection.OpenFromEnvironment;
   try
@@ -29,7 +37,19 @@ procedure RunApi;
 begin
   ApplyMigrations;
   RegisterHealthRoute;
+  RegisterAuthRoutes;
+  RegisterAdminErpRoutes;
+  RegisterErpCompanyRoutes;
+  RegisterErpModuleRoutes;
+  RegisterErpDocumentRoutes;
+  RegisterErpMonitoringRoutes;
   THorse.Listen(9000);
+end;
+
+procedure BootstrapAdmin(const AEmail, APassword: string);
+begin
+  ApplyMigrations;
+  Operations.Authentication.BootstrapFirstSuperadmin(AEmail, APassword);
 end;
 
 end.

@@ -9,4 +9,5 @@ obj/
 *.dcu
 *.dcp
 *.rsm
+*.identcache
 *.local

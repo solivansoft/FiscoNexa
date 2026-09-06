@@ -16,15 +16,18 @@
 
 ## API
 
-- Definir REST convencional ou REST com sincronizacao por cursor.
-- Definir autenticacao de usuarios e credenciais de maquinas.
-- Definir contrato idempotente dos comandos fiscais.
+- Resolvido para a entrega ERP: REST com sincronizacao por NSU proprio.
+- Implementadas sessoes humanas e credenciais distintas de ERP/tenant; ver ledger.
+- XML pendente retorna 202 e reutiliza o comando por tenant/documento.
+- Pendente homologar o fluxo fiscal real do `MVP-006`.
 
 ## Infraestrutura
 
 - Escolher provedor da VPS, PostgreSQL e storage S3.
 - Decidir banco autogerenciado ou gerenciado antes da producao.
-- Definir KMS/Vault para certificados.
+- KMS/Vault para certificados: resolvido. Usar AWS KMS com a chave simetrica
+  `fisconexa-certificates` e envelope encryption. O adaptador da API nao pode
+  depender da AWS CLI.
 - Definir politica de backup, retencao e recuperacao.
 
 ## Comercial

@@ -1,0 +1,11 @@
+[Unit]
+Description=FiscoNexa verificacao continua da fila persistida
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=10s
+AccuracySec=1s
+Unit=fisconexa-worker.service
+
+[Install]
+WantedBy=timers.target
