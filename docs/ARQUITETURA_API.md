@@ -116,7 +116,7 @@ humana deve ser recusada nas rotas de integracao.
 
 | Superficie | Prefixo | Principal aceito | Uso |
 | --- | --- | --- | --- |
-| Infraestrutura | `/saude` | nenhum | health check local e do proxy. |
+| Infraestrutura | `/health` | nenhum | health check local e do proxy. |
 | Frontend | sem versao | usuario humano | portal web e aplicativo futuro. |
 | Integracao REST | `/v1` | token de integracao ERP | consumo maquina-a-maquina. |
 | Interno futuro | sem HTTP inicialmente | worker autenticado no banco | comandos e eventos; se houver HTTP, sera em rede privada com mTLS. |
@@ -127,7 +127,7 @@ para consumir a superficie REST `/v1`.
 ## Contrato HTTP comum
 
 - Rotas do frontend nao recebem versao; a API REST de integracao usa `/v1`.
-- `GET /saude` fica sem versao para infraestrutura.
+- `GET /health` fica sem versao para infraestrutura.
 - JSON UTF-8; chaves em portugues do Brasil `snake_case`. Siglas fiscais e
   cabecalhos HTTP padronizados permanecem inalterados.
 - Datas em ISO-8601 UTC (`2026-09-04T12:34:56Z`).
@@ -155,7 +155,7 @@ nunca contem SQL, stack trace, token, senha ou certificado.
 
 | Grupo | Rotas | Condicao para iniciar |
 | --- | --- | --- |
-| Infraestrutura | `GET /saude` | ja entregue |
+| Infraestrutura | `GET /health` | ja entregue |
 | Frontend: identidade | registro, login, recuperacao e logout | `AUTH-001` |
 | Frontend: empresa | criar/listar empresa e grants | `ACCESS-001` |
 | Frontend: documentos | consultar documentos e configuracoes | `ACCESS-001` |

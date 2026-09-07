@@ -11,7 +11,7 @@ uses
 
 procedure RegisterHealthRoute;
 begin
-  THorse.Get('/saude',
+  THorse.Get('/health',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     begin
       AResponse.ContentType('application/json').Send('{"situacao":"disponivel"}');

@@ -13,7 +13,7 @@ try {
   Sql "insert into integracoes (company_id,display_name,api_token_hash) values ('$companyId','Smoke',encode(digest('$token','sha256'),'hex'))" | Out-Null
   $documentId=Sql "insert into documentos (company_id,access_key,document_type,status,xml_object_key,xml_sha256) values ('$companyId','35111111111111111111111111111111111111111111','nfe','xml_available','$objectKey','$sha') returning id::text"
   $process=Start-Process -FilePath $Executable -PassThru -WindowStyle Hidden
-  $deadline=(Get-Date).AddSeconds(10); do { try { Invoke-RestMethod 'http://127.0.0.1:9000/saude' -TimeoutSec 1 | Out-Null; break } catch { Start-Sleep -Milliseconds 200 } } while((Get-Date)-lt $deadline)
+  $deadline=(Get-Date).AddSeconds(10); do { try { Invoke-RestMethod 'http://127.0.0.1:9000/health' -TimeoutSec 1 | Out-Null; break } catch { Start-Sleep -Milliseconds 200 } } while((Get-Date)-lt $deadline)
   $xml=Invoke-RestMethod -Uri "http://127.0.0.1:9000/v1/documentos/$documentId/xml" -Headers @{Authorization="Bearer $token"} -TimeoutSec 5
   if ($xml.'fisconexa-smoke' -ne 'xml-assinado') { throw 'Rota ERP nao devolveu XML do S3.' }
   Write-Output 'Smoke ERP XML/S3 aprovado.'

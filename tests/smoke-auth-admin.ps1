@@ -34,7 +34,7 @@ try {
   $process = Start-Process -FilePath $Executable -PassThru -WindowStyle Hidden
   $deadline = (Get-Date).AddSeconds(10)
   do {
-    try { Invoke-RestMethod -Uri 'http://127.0.0.1:9000/saude' -TimeoutSec 1 | Out-Null; break } catch { Start-Sleep -Milliseconds 200 }
+    try { Invoke-RestMethod -Uri 'http://127.0.0.1:9000/health' -TimeoutSec 1 | Out-Null; break } catch { Start-Sleep -Milliseconds 200 }
   } while ((Get-Date) -lt $deadline)
 
   try { Invoke-WebRequest -Uri 'http://127.0.0.1:9000/administracao/erps' -Method Post -ContentType 'application/json' -Body '{}' -UseBasicParsing | Out-Null; throw 'Admin sem Bearer foi aceito.' } catch { if ($_.Exception.Response.StatusCode.value__ -ne 401) { throw } }

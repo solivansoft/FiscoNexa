@@ -74,7 +74,7 @@ try {
   $deadline = (Get-Date).AddSeconds(10)
   do {
     try {
-      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/saude' -TimeoutSec 1
+      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/health' -TimeoutSec 1
       if ($response.situacao -eq 'disponivel') { break }
     } catch {
       Start-Sleep -Milliseconds 200
@@ -127,7 +127,7 @@ try {
   $deadline = (Get-Date).AddSeconds(10)
   do {
     try {
-      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/saude' -TimeoutSec 1
+      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/health' -TimeoutSec 1
       if ($response.situacao -eq 'disponivel') {
         break
       }

@@ -36,7 +36,7 @@ try {
   $deadline = (Get-Date).AddSeconds(10)
   do {
     try {
-      Invoke-RestMethod -Uri 'http://127.0.0.1:9000/saude' -TimeoutSec 1 | Out-Null
+      Invoke-RestMethod -Uri 'http://127.0.0.1:9000/health' -TimeoutSec 1 | Out-Null
       break
     } catch {
       Start-Sleep -Milliseconds 200

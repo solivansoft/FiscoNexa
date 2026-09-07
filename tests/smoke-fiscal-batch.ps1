@@ -47,7 +47,7 @@ try {
   $api=Start-Process (Join-Path $root 'bin\win64\FiscoNexa.Api.exe') -PassThru -WindowStyle Hidden
   $ready=$false
   for($i=0;$i -lt 50;$i++) {
-    try { if((Http GET '/saude' @{}).situacao -eq 'disponivel'){$ready=$true;break} } catch {Start-Sleep -Milliseconds 200}
+    try { if((Http GET '/health' @{}).situacao -eq 'disponivel'){$ready=$true;break} } catch {Start-Sleep -Milliseconds 200}
   }
   if(-not $ready){throw 'API indisponivel.'}
   if($SingleCompanyId) {

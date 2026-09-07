@@ -77,7 +77,7 @@ try {
   $ready = $false
   for ($attempt=0; $attempt -lt 50; $attempt++) {
     if ($apiProcess.HasExited) { throw 'API encerrou antes do smoke.' }
-    try { $ready = ((ApiJson GET '/saude' @{}).situacao -eq 'disponivel'); if ($ready) { break } }
+    try { $ready = ((ApiJson GET '/health' @{}).situacao -eq 'disponivel'); if ($ready) { break } }
     catch { Start-Sleep -Milliseconds 200 }
   }
   if (-not $ready) { throw 'API indisponivel.' }
@@ -157,7 +157,7 @@ try {
     }
     Write-Output 'XML lido duas vezes pela API/S3, com SHA-256 conferido e sem nova consulta SEFAZ.'
   }
-  if ((ApiJson GET '/saude' @{}).situacao -ne 'disponivel') { throw 'API ficou indisponivel apos o ciclo.' }
+  if ((ApiJson GET '/health' @{}).situacao -ne 'disponivel') { throw 'API ficou indisponivel apos o ciclo.' }
   Write-Output 'API disponivel. Estado e arquivos retidos; proxima execucao respeitara a janela do banco.'
 } finally {
   if ($null -ne $apiProcess -and -not $apiProcess.HasExited) { Stop-Process -Id $apiProcess.Id }

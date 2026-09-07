@@ -99,7 +99,7 @@ try {
   $deadline = (Get-Date).AddSeconds(15)
   do {
     try {
-      if ((Invoke-RestMethod -Uri "$env:FISCONEXA_API_URL/saude" -TimeoutSec 1).situacao -eq 'disponivel') { break }
+      if ((Invoke-RestMethod -Uri "$env:FISCONEXA_API_URL/health" -TimeoutSec 1).situacao -eq 'disponivel') { break }
     } catch { Start-Sleep -Milliseconds 200 }
   } while ((Get-Date) -lt $deadline)
   if ($null -eq $apiProcess -or $apiProcess.HasExited) { throw 'API encerrou antes do smoke.' }

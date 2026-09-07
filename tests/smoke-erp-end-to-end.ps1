@@ -47,7 +47,7 @@ try {
   $process = Start-Process -FilePath $ApiExecutable -PassThru -WindowStyle Hidden
   $deadline = (Get-Date).AddSeconds(10)
   do {
-    try { if ((Invoke-RestMethod -Uri "$env:FISCONEXA_API_URL/saude" -TimeoutSec 1).situacao -eq 'disponivel') { break } }
+    try { if ((Invoke-RestMethod -Uri "$env:FISCONEXA_API_URL/health" -TimeoutSec 1).situacao -eq 'disponivel') { break } }
     catch { Start-Sleep -Milliseconds 200 }
   } while ((Get-Date) -lt $deadline)
   if ($null -eq $process -or $process.HasExited) { throw 'API encerrou antes do E2E.' }

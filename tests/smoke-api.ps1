@@ -34,19 +34,39 @@ $env:Path = $postgresClientBin + ';' + $env:Path
 $process = Start-Process -FilePath $Executable -PassThru -WindowStyle Hidden
 try {
   $deadline = (Get-Date).AddSeconds(10)
+  $ready = $false
   do {
     try {
-      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/saude' -TimeoutSec 1
+      $response = Invoke-RestMethod -Uri 'http://127.0.0.1:9000/health' -TimeoutSec 1
       if ($response.situacao -eq 'disponivel') {
-        Write-Output 'Smoke test aprovado: GET /saude respondeu situacao=disponivel.'
-        exit 0
+        $ready = $true
+        break
       }
     } catch {
       Start-Sleep -Milliseconds 200
     }
   } while ((Get-Date) -lt $deadline)
 
-  throw 'GET /saude nao respondeu situacao=disponivel dentro de 10 segundos.'
+  if (-not $ready) {
+    throw 'GET /health nao respondeu situacao=disponivel dentro de 10 segundos.'
+  }
+
+  $legacyStatus = 0
+  try {
+    Invoke-WebRequest -Uri 'http://127.0.0.1:9000/saude' -UseBasicParsing -TimeoutSec 1 | Out-Null
+    $legacyStatus = 200
+  } catch {
+    if ($_.Exception.Response) {
+      $legacyStatus = [int]$_.Exception.Response.StatusCode
+    } else {
+      throw
+    }
+  }
+  if ($legacyStatus -ne 404) {
+    throw "Rota legada GET /saude deveria responder 404, mas respondeu $legacyStatus."
+  }
+
+  Write-Output 'Smoke test aprovado: GET /health respondeu situacao=disponivel e GET /saude respondeu 404.'
 } finally {
   if (-not $process.HasExited) {
     Stop-Process -Id $process.Id -Force

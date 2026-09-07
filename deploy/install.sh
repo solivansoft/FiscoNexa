@@ -41,7 +41,7 @@ systemctl enable fisconexa-api.service fisconexa-worker.timer
 systemctl restart fisconexa-api.service
 saudavel=false
 for tentativa in $(seq 1 90); do
-  if curl -fsS http://127.0.0.1:9000/saude >/dev/null; then saudavel=true; break; fi
+  if curl -fsS http://127.0.0.1:9000/health >/dev/null; then saudavel=true; break; fi
   sleep 1
 done
 if [[ "$saudavel" != true ]]; then

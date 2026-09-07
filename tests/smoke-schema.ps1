@@ -28,7 +28,7 @@ function Start-And-VerifyApi {
     $deadline = (Get-Date).AddSeconds(10)
     do {
       try {
-        if ((Invoke-RestMethod -Uri 'http://127.0.0.1:9000/saude' -TimeoutSec 1).situacao -eq 'disponivel') {
+        if ((Invoke-RestMethod -Uri 'http://127.0.0.1:9000/health' -TimeoutSec 1).situacao -eq 'disponivel') {
           return
         }
       } catch {

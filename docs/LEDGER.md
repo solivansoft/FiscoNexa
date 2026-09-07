@@ -39,9 +39,9 @@ do que e somente planejado e define a proxima dependencia elegivel.
 | ENV-001 | OK | Dependencias Win64 sao reproduziveis e pinadas. | `scripts\dependencies.bat win64` concluiu com Horse no commit do lock e `libpq.dll` validada por SHA-256. |
 | BUILD-001 | OK | API Win64 gera binario release e DCUs fora de `src`. | `scripts\build-api.bat win64` concluiu; 56 DCUs em `build\win64\dcu` e zero em `src`. |
 | DB-001 | OK | O mesmo executavel aplica somente migrations pendentes. | 2026-09-05: `tests/test-release-local.ps1` cria banco isolado, aplica o schema declarativo repetidamente e verifica preservacao dos dados. |
-| API-001 | OK | A API responde `GET /saude` apos migrar o banco. | `tests\smoke-api.ps1` aprovado. |
+| API-001 | OK | A API responde `GET /health` apos migrar o banco. | `tests\smoke-api.ps1` aprovado. |
 | API-ARCH-001 | OK | A API possui fronteiras, ciclo de requisicao e contrato HTTP definidos antes de novas rotas. | [Arquitetura da API](ARQUITETURA_API.md) revisada contra as invariantes de CNPJ. |
-| LINUX-001 | OK | API e worker compilam nativamente para Linux64 e executam no Ubuntu com as bibliotecas ACBr declaradas. | 2026-09-07: `scripts\build-api.bat linux64` e `scripts\build-worker.bat linux64` aprovados com `dcclinux64`; API respondeu `/saude` no WSL e o worker consultou tres certificados reais, sem bloqueio, incluindo avancos NSU 50->79 e 0->4525. |
+| LINUX-001 | OK | API e worker compilam nativamente para Linux64 e executam no Ubuntu com as bibliotecas ACBr declaradas. | 2026-09-07: `scripts\build-api.bat linux64` e `scripts\build-worker.bat linux64` aprovados com `dcclinux64`; API respondeu `/health` no WSL e o worker consultou tres certificados reais, sem bloqueio, incluindo avancos NSU 50->79 e 0->4525. |
 | PROD-DATA-001 | OK | A promocao da base piloto preserva integralmente cursores fiscais, documentos e referencias externas; nenhum tenant homologado reinicia do NSU zero. | 2026-09-07: dump/restauracao para `dados.vps` comparou 19 tabelas e invariantes: 8 empresas, 124 documentos, 119 XMLs, 127 comandos e sequencia 375; API aplicou `licencas` sem alterar os dados fiscais. |
 
 ## Roteiro por dependencia
@@ -99,7 +99,7 @@ e nao devem ser registradas antes de seus itens de dependencia ficarem `OK`.
 
 | Rota | Estado | Caso de uso | Dependencias |
 | --- | --- | --- | --- |
-| `GET /saude` | OK | disponibilidade local da API | API-001 |
+| `GET /health` | OK | disponibilidade local da API | API-001 |
 | `POST /administracao/erps` | OK | cadastrar ERP homologado e emitir chave | AUTH-001, ERP-ADMIN-001 |
 | `POST /administracao/erps/{id_erp}/chaves` | OK | rotacionar chave de ERP | AUTH-001, ERP-ADMIN-001 |
 | `DELETE /administracao/erps/{id_erp}/chaves/{id_chave}` | OK | revogar chave de ERP | AUTH-001, ERP-ADMIN-001 |

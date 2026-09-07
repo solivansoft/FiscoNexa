@@ -23,7 +23,7 @@ Comandos operacionais:
 ```bash
 systemctl status fisconexa-api fisconexa-worker.timer alloy caddy
 journalctl -u fisconexa-api -u fisconexa-worker
-curl -fsS http://127.0.0.1:9000/saude
+curl -fsS http://127.0.0.1:9000/health
 ```
 
 As configuracoes complementares ficam em `deploy/caddy`, `deploy/alloy`,

@@ -6,7 +6,7 @@ para sessao ou token de integracao e `Idempotency-Key` no cadastro de empresa.
 
 | Metodo e rota | Credencial | Uso |
 | --- | --- | --- |
-| `GET /saude` | nenhuma | Retorna `{"situacao":"disponivel"}`. |
+| `GET /health` | nenhuma | Retorna `{"situacao":"disponivel"}`. |
 | `POST /autenticacao/entrar` | nenhuma | Recebe `email` e `senha`; retorna `token_acesso`, `token_renovacao`, `tipo_token`, `expira_em`. |
 | `POST /autenticacao/renovar` | nenhuma | Recebe `token_renovacao`. |
 | `PUT /autenticacao/senha` | sessao | Recebe `senha_atual` e `nova_senha`. |

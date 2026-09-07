@@ -1,11 +1,11 @@
 # Status
 
-Atualizado em 2026-09-07 19:30 (America/Sao_Paulo).
+Atualizado em 2026-09-07 20:10 (America/Sao_Paulo).
 
 ## Producao
 
 A API e o worker Linux estao instalados no `fisconexa.vps` como release
-`2026.09.07-rc8`. `https://api.fisconexa.com.br/saude` responde
+`2026.09.07-rc9`. `https://api.fisconexa.com.br/health` responde
 `{"situacao":"disponivel"}`. API, timer do worker, Caddy, Alloy, WireGuard e
 fail2ban estao habilitados e ativos no systemd. Uma reinicializacao controlada
 comprovou que os servicos retornam sem intervencao.
@@ -42,9 +42,10 @@ Em 2026-09-07 22:20:44 UTC o worker consultou a SEFAZ na janela persistida,
 recebeu `cStat 137`, zerou a falha, liberou a lease e agendou a proxima consulta
 para 23:21:14 UTC. Esse resultado liberou de forma transacional os demais
 tenants. A fila processou os vencidos, inclusive um lote `cStat 138`, avancou o
-NSU e aplicou novas janelas de aproximadamente uma hora. Um tenant com erro da
-release anterior permanece agendado para 22:46:54 UTC; o worker cuidara dele
-sem antecipacao manual. A ciencia automatica global permanece desligada.
+NSU e aplicou novas janelas de aproximadamente uma hora. O tenant que ainda
+guardava um erro da release anterior foi processado pelo proprio worker as
+22:46:59 UTC, recebeu `cStat 138` e nova janela para 23:47:29 UTC. A ciencia
+automatica global permanece desligada.
 
 ## Integracao ERP
 
@@ -83,9 +84,9 @@ gateway retornaram automaticamente em reinicializacao controlada.
 - `scripts\test-unit.bat`: 76/76 metodos aprovados.
 - `scripts\build-api.bat linux64` e `scripts\build-worker.bat linux64`:
   compilacao Linux64 aprovada.
-- Pacote implantado: `fisconexa-2026.09.07-rc8.tar.gz`, SHA-256
-  `fe0337ec413a73b85d859f744b11eed8d91b1d71f1b6daed297fdff3ddc6051f`.
+- Pacote implantado: `fisconexa-2026.09.07-rc9.tar.gz`, SHA-256
+  `d92a32b0998f5b7f9b79f5d386b0d88e4ca7df1baaee49540b0e542972780386`.
 - Teste de certificado ACBr sem chamada SEFAZ aprovado no WSL e na VPS com as
   bibliotecas autocontidas da `rc8`.
 - `scripts\build-erp-spike.bat`: `.dpr` e `.exe` Win64 recompilados; smoke real
-  aprovado contra `https://api.fisconexa.com.br` depois da rodada fiscal.
+  aprovado contra `https://api.fisconexa.com.br` pela rota `/health` na `rc9`.

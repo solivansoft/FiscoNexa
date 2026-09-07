@@ -72,7 +72,7 @@ var
 begin
   Token := VariavelObrigatoria('FISCONEXA_ERP_TOKEN');
 
-  Resposta := GetJson(ACliente, '/saude', '');
+  Resposta := GetJson(ACliente, '/health', '');
   ValidarObjetoJson(Resposta, 'situacao', 'Saude');
   Writeln('SAUDE OK ', Resposta);
 
