@@ -13,6 +13,8 @@ type
     function Inspect(const APfx, APassword: TBytes): TCertificateIdentity;
   end;
 
+procedure EnsureOpenSslProviders;
+
 implementation
 
 const
@@ -52,21 +54,36 @@ function OSSL_PROVIDER_load(ALibCtx: Pointer; AName: PAnsiChar): Pointer; cdecl;
 function OSSL_PROVIDER_set_default_search_path(ALibCtx: Pointer;
   APath: PAnsiChar): Integer; cdecl; external OpenSslLibrary;
 
-procedure TryLoadLegacyProvider;
+var
+  ProvidersLock: TObject;
+  ProvidersLoaded: Boolean;
+
+procedure EnsureOpenSslProviders;
 var
   ProviderName: AnsiString;
   ModulePath: AnsiString;
 begin
-  // Alguns A1 ainda usam algoritmos legados de PKCS#12, como RC2. O provider
-  // e opcional: PFXs modernos continuam funcionando sem o modulo legacy.
-  ProviderName := 'default';
-  OSSL_PROVIDER_load(nil, PAnsiChar(ProviderName));
-  ModulePath := AnsiString(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) +
-    'ossl-modules');
-  if DirectoryExists(string(ModulePath)) then
-    OSSL_PROVIDER_set_default_search_path(nil, PAnsiChar(ModulePath));
-  ProviderName := 'legacy';
-  OSSL_PROVIDER_load(nil, PAnsiChar(ProviderName));
+  TMonitor.Enter(ProvidersLock);
+  try
+    if ProvidersLoaded then
+      Exit;
+    // Alguns A1 ainda usam algoritmos legados de PKCS#12, como RC2. O provider
+    // e opcional: PFXs modernos continuam funcionando sem o modulo legacy.
+    ModulePath := AnsiString(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) +
+      'lib' + PathDelim + 'ossl-modules');
+    if not DirectoryExists(string(ModulePath)) then
+      ModulePath := AnsiString(IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) +
+        'ossl-modules');
+    if DirectoryExists(string(ModulePath)) then
+      OSSL_PROVIDER_set_default_search_path(nil, PAnsiChar(ModulePath));
+    ProviderName := 'default';
+    OSSL_PROVIDER_load(nil, PAnsiChar(ProviderName));
+    ProviderName := 'legacy';
+    OSSL_PROVIDER_load(nil, PAnsiChar(ProviderName));
+    ProvidersLoaded := True;
+  finally
+    TMonitor.Exit(ProvidersLock);
+  end;
 end;
 
 procedure RequireOpenSslSuccess(const AResult: Integer; const AMessage: string);
@@ -120,7 +137,7 @@ begin
       PrivateKey := nil;
       Certificate := nil;
       CaCertificates := nil;
-      TryLoadLegacyProvider;
+      EnsureOpenSslProviders;
       RequireOpenSslSuccess(PKCS12_parse(Pkcs12, PAnsiChar(Password), PrivateKey,
         Certificate, CaCertificates), 'Senha do PFX invalida ou certificado inacessivel.');
       try
@@ -140,5 +157,11 @@ begin
     BIO_free(Bio);
   end;
 end;
+
+initialization
+  ProvidersLock := TObject.Create;
+
+finalization
+  ProvidersLock.Free;
 
 end.

@@ -33,6 +33,7 @@ uses
   ACBrDFeSSL,
   Application.BrazilianStates,
   Application.SefazMonitoringPolicy,
+  Integrations.OpenSslCertificate,
   System.SysUtils;
 
 const
@@ -153,6 +154,7 @@ var
 begin
   Certificate := FCertificateProvider.LoadActive(ACompanyId);
   try
+    EnsureOpenSslProviders;
     NFe := TACBrNFe.Create(nil);
     try
       NFe.Configuracoes.Certificados.DadosPFX := BytesToAnsiString(Certificate.Pfx);

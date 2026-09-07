@@ -18,7 +18,16 @@ cp deploy/*.sh deploy/*.example deploy/README.md "$destino/deploy/"
 cp -r deploy/systemd "$destino/deploy/"
 printf '%s\n' "$versao" > "$destino/VERSION"
 for lib in libpq.so libssl.so libcrypto.so libxml2.so libxmlsec1.so libxmlsec1-openssl.so libxslt.so libexslt.so libz.so; do
-  cp -L "/usr/lib/x86_64-linux-gnu/$lib" "$destino/lib/$lib"
+  origem=$(readlink -f "/usr/lib/x86_64-linux-gnu/$lib")
+  soname=$(basename "$origem")
+  [[ -f "$destino/lib/$soname" ]] || cp "$origem" "$destino/lib/$soname"
+  if [[ "$lib" != "$soname" ]]; then
+    # O ACBr abre os nomes sem versao com dlopen. Um segundo arquivo com o
+    # mesmo SONAME criaria outra instancia do OpenSSL e outro contexto de
+    # providers. O hardlink mantem uma unica biblioteca e continua coberto
+    # pelo manifesto SHA256.
+    ln "$destino/lib/$soname" "$destino/lib/$lib"
+  fi
 done
 cp /usr/lib/x86_64-linux-gnu/ossl-modules/legacy.so "$destino/lib/ossl-modules/"
 # Fecha dependencias transitivas; glibc/loader permanecem parte do Ubuntu alvo.

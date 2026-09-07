@@ -3,6 +3,8 @@ program FiscoNexa.SefazRealIntegration;
 {$APPTYPE CONSOLE}
 
 uses
+  ACBrDFeSSL,
+  ACBrNFe,
   System.IOUtils,
   System.SysUtils,
   Application.BrazilianStates in '..\..\src\application\Application.BrazilianStates.pas',
@@ -71,11 +73,49 @@ begin
       'Defina FISCONEXA_SEFAZ_REAL_CONFIRMATION=YES para consultar a SEFAZ real.');
 end;
 
+function BytesToAnsiString(const AValue: TBytes): AnsiString;
+begin
+  if Length(AValue) = 0 then
+    Exit('');
+  SetString(Result, PAnsiChar(@AValue[0]), Length(AValue));
+end;
+
+procedure ValidateAcbrCertificate;
+var
+  NFe: TACBrNFe;
+  Pfx: TBytes;
+  ExpectedCnpj: string;
+begin
+  Pfx := TFile.ReadAllBytes(RequiredEnvironmentValue('FISCONEXA_TEST_PFX_PATH'));
+  ExpectedCnpj := RequiredEnvironmentValue('FISCONEXA_TEST_CNPJ');
+  EnsureOpenSslProviders;
+  NFe := TACBrNFe.Create(nil);
+  try
+    NFe.Configuracoes.Certificados.DadosPFX := BytesToAnsiString(Pfx);
+    NFe.Configuracoes.Certificados.Senha :=
+      AnsiString(RequiredEnvironmentValue('FISCONEXA_TEST_PFX_PASSWORD'));
+    NFe.Configuracoes.Geral.SSLCryptLib := cryOpenSSL;
+    NFe.SSL.CarregarCertificado;
+    if NFe.SSL.CertCNPJ <> ExpectedCnpj then
+      raise EInvalidOpException.Create('ACBr carregou CNPJ diferente do esperado.');
+    Writeln('Certificado ACBr aprovado: CNPJ e chave privada carregados sem consulta SEFAZ.');
+  finally
+    NFe.Free;
+    if Length(Pfx) > 0 then
+      FillChar(Pfx[0], Length(Pfx), 0);
+  end;
+end;
+
 var
   Provider: IActiveCertificateProvider;
   Gateway: IDistributionGateway;
   Response: TDistributionResponse;
 begin
+  if (ParamCount > 0) and SameText(ParamStr(1), 'certificado') then
+  begin
+    ValidateAcbrCertificate;
+    Exit;
+  end;
   RequireRealConfirmation;
   Provider := TFileCertificateProvider.Create(
     RequiredEnvironmentValue('FISCONEXA_TEST_PFX_PATH'),
