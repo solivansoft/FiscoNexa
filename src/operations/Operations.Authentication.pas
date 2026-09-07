@@ -17,9 +17,9 @@ implementation
 uses
   Database.Connection,
   Persistence.Authentication,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
-function CreateService(out AConnection: TUniConnection): TAuthenticationService;
+function CreateService(out AConnection: TFDConnection): TAuthenticationService;
 var
   Store: IAuthenticationStore;
 begin
@@ -30,7 +30,7 @@ end;
 
 function Refresh(const ARefreshToken: string): TAuthSession;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TAuthenticationService;
 begin
   Service := CreateService(Connection);
@@ -44,7 +44,7 @@ end;
 
 procedure Logout(const AAuthorization: string);
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TAuthenticationService;
 begin
   Service := CreateService(Connection);
@@ -58,7 +58,7 @@ end;
 
 procedure ChangePassword(const AAuthorization, ACurrentPassword, ANewPassword: string);
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TAuthenticationService;
 begin
   Service := CreateService(Connection);
@@ -72,7 +72,7 @@ end;
 
 procedure BootstrapFirstSuperadmin(const AEmail, APassword: string);
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TAuthenticationService;
 begin
   Service := CreateService(Connection);
@@ -86,7 +86,7 @@ end;
 
 function Login(const AEmail, APassword: string): TAuthSession;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TAuthenticationService;
 begin
   Service := CreateService(Connection);
@@ -100,7 +100,7 @@ end;
 
 function RequireSuperadmin(const AAuthorization: string): TAuthUser;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TAuthenticationService;
 begin
   Service := CreateService(Connection);

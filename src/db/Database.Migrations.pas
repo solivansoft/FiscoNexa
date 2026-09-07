@@ -2,19 +2,19 @@ unit Database.Migrations;
 
 interface
 
-uses Uni;
+uses FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TDatabaseMigrator = class
   public
-    class procedure ApplyPending(const AConnection: TUniConnection); static;
+    class procedure ApplyPending(const AConnection: TFDConnection); static;
   end;
 
 implementation
 
 uses Schema.Runner;
 
-class procedure TDatabaseMigrator.ApplyPending(const AConnection: TUniConnection);
+class procedure TDatabaseMigrator.ApplyPending(const AConnection: TFDConnection);
 begin
   TSchemaRunner.Apply(AConnection);
 end;

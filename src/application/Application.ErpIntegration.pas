@@ -24,7 +24,7 @@ uses
   System.Hash,
   Application.Authorization,
   Database.Connection,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 function ParseErpBearerToken(const AAuthorization: string): string;
 begin
@@ -33,8 +33,8 @@ end;
 
 function AuthenticateErpToken(const AAuthorization: string): TErpIntegrationPrincipal;
 var
-  Connection: TUniConnection;
-  Query: TUniQuery;
+  Connection: TFDConnection;
+  Query: TFDQuery;
   Token: string;
   TokenHash: string;
 begin
@@ -45,7 +45,7 @@ begin
   TokenHash := THashSHA2.GetHashString(Token).ToLowerInvariant;
   Connection := TDatabaseConnection.OpenFromEnvironment;
   try
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := Connection;
       Query.SQL.Text :=

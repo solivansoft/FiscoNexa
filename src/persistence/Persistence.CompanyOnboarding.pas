@@ -4,13 +4,13 @@ interface
 
 uses
   Application.CompanyOnboarding,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TPostgresCompanyOnboardingWriter = class(TInterfacedObject,
     ICompanyOnboardingWriter)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
     procedure ReadCompany(const ACompanyId: string; var AResult: TCompanyOnboardingResult);
     function FindCompanyId(const ACnpj: string): string;
     function FindIntegrationId(const ACompanyId, AOrganizationId: string): string;
@@ -27,7 +27,7 @@ type
     procedure InsertMonitoring(const ACompanyId: string;
       const AData: TCompanyOnboardingData);
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     function Save(const AData: TCompanyOnboardingData): TCompanyOnboardingResult;
   end;
 
@@ -38,13 +38,13 @@ uses
   System.Classes,
   System.SysUtils;
 
-function NewQuery(const AConnection: TUniConnection): TUniQuery;
+function NewQuery(const AConnection: TFDConnection): TFDQuery;
 begin
-  Result := TUniQuery.Create(nil);
+  Result := TFDQuery.Create(nil);
   Result.Connection := AConnection;
 end;
 
-procedure SetBinaryParameter(const AQuery: TUniQuery; const AName: string;
+procedure SetBinaryParameter(const AQuery: TFDQuery; const AName: string;
   const AValue: TBytes);
 var
   Stream: TBytesStream;
@@ -59,7 +59,7 @@ end;
 
 function TPostgresCompanyOnboardingWriter.FindCompanyId(const ACnpj: string): string;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Result := '';
   Query := NewQuery(FConnection);
@@ -77,7 +77,7 @@ end;
 function TPostgresCompanyOnboardingWriter.FindIntegrationId(const ACompanyId,
   AOrganizationId: string): string;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Result := '';
   Query := NewQuery(FConnection);
@@ -99,7 +99,7 @@ end;
 function TPostgresCompanyOnboardingWriter.HasCommand(const ACompanyId,
   AIdempotencyKey: string): Boolean;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try
@@ -119,7 +119,7 @@ end;
 function TPostgresCompanyOnboardingWriter.InsertCompany(
   const AData: TCompanyOnboardingData): string;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try
@@ -139,7 +139,7 @@ end;
 procedure TPostgresCompanyOnboardingWriter.UpdateCompanyState(
   const ACompanyId: string; const AData: TCompanyOnboardingData);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try
@@ -165,7 +165,7 @@ end;
 function TPostgresCompanyOnboardingWriter.InsertIntegration(const ACompanyId: string;
   const AData: TCompanyOnboardingData): string;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try
@@ -187,7 +187,7 @@ end;
 procedure TPostgresCompanyOnboardingWriter.InsertCompanyOrganization(
   const ACompanyId: string; const AData: TCompanyOnboardingData);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try
@@ -205,7 +205,7 @@ end;
 procedure TPostgresCompanyOnboardingWriter.InsertCertificate(const ACompanyId: string;
   const AData: TCompanyOnboardingData);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try
@@ -249,7 +249,7 @@ end;
 procedure TPostgresCompanyOnboardingWriter.InsertMonitoring(const ACompanyId: string;
   const AData: TCompanyOnboardingData);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try
@@ -279,7 +279,7 @@ begin
   end;
 end;
 
-constructor TPostgresCompanyOnboardingWriter.Create(const AConnection: TUniConnection);
+constructor TPostgresCompanyOnboardingWriter.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -337,7 +337,7 @@ end;
 
 procedure TPostgresCompanyOnboardingWriter.ReadCompany(const ACompanyId: string;
   var AResult: TCompanyOnboardingResult);
-var Query: TUniQuery;
+var Query: TFDQuery;
 begin
   Query := NewQuery(FConnection);
   try

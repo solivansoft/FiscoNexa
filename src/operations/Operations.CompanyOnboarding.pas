@@ -25,12 +25,12 @@ uses
   Integrations.OpenSslToken,
   Persistence.CompanyOnboarding,
   Persistence.ErpKeys,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 function ExecuteErpCompanyOnboarding(const AAuthorization: string;
   const ARequest: TCompanyOnboardingRequest): TCompanyOnboardingResult;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   KeyReader: IErpKeyReader;
   Principal: TErpKeyPrincipal;
   Transport: IAwsKmsTransport;

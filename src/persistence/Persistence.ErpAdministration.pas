@@ -2,14 +2,14 @@ unit Persistence.ErpAdministration;
 
 interface
 
-uses Application.ErpAdministration, Uni;
+uses Application.ErpAdministration, FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TPostgresErpAdministrationStore = class(TInterfacedObject, IErpAdministrationStore)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     function CreateErp(const ALegalName: string): string;
     function ErpExists(const AErpId: string): Boolean;
     function CreateKey(const AErpId, ALabel, AKeyHash: string): string;
@@ -22,7 +22,7 @@ uses
   Data.DB,
   System.SysUtils;
 
-constructor TPostgresErpAdministrationStore.Create(const AConnection: TUniConnection);
+constructor TPostgresErpAdministrationStore.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -31,9 +31,9 @@ begin
 end;
 
 function TPostgresErpAdministrationStore.CreateErp(const ALegalName: string): string;
-var Query: TUniQuery;
+var Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text := 'insert into organizacoes (legal_name, organization_type) ' +
@@ -45,9 +45,9 @@ begin
 end;
 
 function TPostgresErpAdministrationStore.ErpExists(const AErpId: string): Boolean;
-var Query: TUniQuery;
+var Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text := 'select 1 from organizacoes where id = cast(:id as uuid) and organization_type = ''erp''';
@@ -58,9 +58,9 @@ begin
 end;
 
 function TPostgresErpAdministrationStore.CreateKey(const AErpId, ALabel, AKeyHash: string): string;
-var Query: TUniQuery;
+var Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text := 'insert into chaves_erp (organization_id, label, key_hash) values ' +
@@ -74,9 +74,9 @@ begin
 end;
 
 procedure TPostgresErpAdministrationStore.RevokeKey(const AErpId, AKeyId: string);
-var Query: TUniQuery;
+var Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text := 'update chaves_erp set revoked_at = now() where id = cast(:key_id as uuid) ' +

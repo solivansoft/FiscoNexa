@@ -4,12 +4,12 @@ interface
 
 uses
   Schema.Definition,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TPostgresSchema = class
   public
-    class procedure Apply(const AConnection: TUniConnection; const ATable: TTableSchema); static;
+    class procedure Apply(const AConnection: TFDConnection; const ATable: TTableSchema); static;
   end;
 
 implementation
@@ -57,10 +57,10 @@ begin
   if sfaUnique in AField.Attributes then Result := Result + ' unique';
 end;
 
-function ColumnExists(const AConnection: TUniConnection; const ATableName, AColumnName: string): Boolean;
-var Query: TUniQuery;
+function ColumnExists(const AConnection: TFDConnection; const ATableName, AColumnName: string): Boolean;
+var Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'select exists(select 1 from information_schema.columns where table_schema = ''public'' and table_name = :table_name and column_name = :column_name) as exists';
@@ -71,15 +71,15 @@ begin
   finally Query.Free; end;
 end;
 
-procedure CreateActionTable(const AConnection: TUniConnection);
+procedure CreateActionTable(const AConnection: TFDConnection);
 begin
   AConnection.ExecSQL('create table if not exists schema_actions (table_name text not null, action_id text not null, applied_at timestamptz not null default now(), primary key (table_name, action_id))');
 end;
 
-function ActionWasApplied(const AConnection: TUniConnection; const ATableName, AActionId: string): Boolean;
-var Query: TUniQuery;
+function ActionWasApplied(const AConnection: TFDConnection; const ATableName, AActionId: string): Boolean;
+var Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'select exists(select 1 from schema_actions where table_name = :table_name and action_id = :action_id) as applied';
@@ -90,11 +90,11 @@ begin
   finally Query.Free; end;
 end;
 
-procedure RegisterAction(const AConnection: TUniConnection; const ATableName, AActionId: string);
+procedure RegisterAction(const AConnection: TFDConnection; const ATableName, AActionId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'insert into schema_actions (table_name, action_id) values (:table_name, :action_id)';
@@ -106,7 +106,7 @@ begin
   end;
 end;
 
-procedure ApplyAction(const AConnection: TUniConnection; const ATable: TTableSchema; const AAction: TSchemaAction);
+procedure ApplyAction(const AConnection: TFDConnection; const ATable: TTableSchema; const AAction: TSchemaAction);
 begin
   case AAction.ActionType of
     satRenameField:
@@ -125,12 +125,12 @@ begin
   end;
 end;
 
-function ConstraintExists(const AConnection: TUniConnection; const ATableName,
+function ConstraintExists(const AConnection: TFDConnection; const ATableName,
   AConstraintName: string): Boolean;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'select exists(select 1 from information_schema.table_constraints ' +
@@ -145,11 +145,11 @@ begin
   end;
 end;
 
-function IndexExists(const AConnection: TUniConnection; const AIndexName: string): Boolean;
+function IndexExists(const AConnection: TFDConnection; const AIndexName: string): Boolean;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'select exists(select 1 from pg_indexes where schemaname = ''public'' ' +
@@ -162,7 +162,7 @@ begin
   end;
 end;
 
-procedure ApplyForeignKey(const AConnection: TUniConnection; const ATable: TTableSchema;
+procedure ApplyForeignKey(const AConnection: TFDConnection; const ATable: TTableSchema;
   const AForeignKey: TSchemaForeignKey);
 var
   Sql: string;
@@ -178,7 +178,7 @@ begin
   AConnection.ExecSQL(Sql);
 end;
 
-procedure ApplyCheck(const AConnection: TUniConnection; const ATable: TTableSchema;
+procedure ApplyCheck(const AConnection: TFDConnection; const ATable: TTableSchema;
   const ACheck: TSchemaCheck);
 begin
   if ConstraintExists(AConnection, ATable.Name, ACheck.Name) then
@@ -188,7 +188,7 @@ begin
     ACheck.Name + ' check (' + ACheck.Expression + ')');
 end;
 
-procedure ApplyIndex(const AConnection: TUniConnection; const ATable: TTableSchema;
+procedure ApplyIndex(const AConnection: TFDConnection; const ATable: TTableSchema;
   const AIndex: TSchemaIndex);
 var
   Sql: string;
@@ -204,7 +204,7 @@ begin
   AConnection.ExecSQL(Sql);
 end;
 
-class procedure TPostgresSchema.Apply(const AConnection: TUniConnection; const ATable: TTableSchema);
+class procedure TPostgresSchema.Apply(const AConnection: TFDConnection; const ATable: TTableSchema);
 var
   Field: TSchemaField;
   Action: TSchemaAction;

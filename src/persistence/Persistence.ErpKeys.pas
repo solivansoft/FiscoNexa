@@ -4,14 +4,14 @@ interface
 
 uses
   Application.ErpKeys,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TPostgresErpKeyReader = class(TInterfacedObject, IErpKeyReader)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     function FindActiveByHash(const AKeyHash: string;
       out APrincipal: TErpKeyPrincipal): Boolean;
   end;
@@ -21,7 +21,7 @@ implementation
 uses
   Data.DB;
 
-constructor TPostgresErpKeyReader.Create(const AConnection: TUniConnection);
+constructor TPostgresErpKeyReader.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   FConnection := AConnection;
@@ -30,10 +30,10 @@ end;
 function TPostgresErpKeyReader.FindActiveByHash(const AKeyHash: string;
   out APrincipal: TErpKeyPrincipal): Boolean;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   APrincipal := Default(TErpKeyPrincipal);
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=

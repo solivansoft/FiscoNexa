@@ -1,7 +1,7 @@
 ﻿unit Integration.MonitorPipeline;
 interface
-uses Uni;
-procedure VerifyMonitorPipeline(const C: TUniConnection; const CompanyId: string);
+uses FireDAC.Stan.Param, FireDAC.Comp.Client;
+procedure VerifyMonitorPipeline(const C: TFDConnection; const CompanyId: string);
 implementation
 uses System.SysUtils, System.DateUtils, System.Hash, Application.MonitorCycle, Application.MonitorGaps,
   Application.MonitorLeases, Application.MonitorCommands, Application.ErpDocuments,
@@ -21,9 +21,9 @@ begin
 end;
 procedure Require(Value: Boolean; const Msg: string);
 begin if not Value then raise Exception.Create(Msg); end;
-procedure VerifyMonitorPipeline(const C: TUniConnection; const CompanyId: string);
+procedure VerifyMonitorPipeline(const C: TFDConnection; const CompanyId: string);
 var
-  Q: TUniQuery;
+  Q: TFDQuery;
   Writer: TPostgresMonitorCycleWriter;
   Docs: TArray<TSefazDocument>;
   Page: TErpDocumentPage;
@@ -75,7 +75,7 @@ var
     ExecuteSql('update lacunas_monitoramento set next_attempt_at = now() where company_id = '''+CompanyId+'''');
   end;
 begin
-  Q := TUniQuery.Create(nil);
+  Q := TFDQuery.Create(nil);
   Writer := TPostgresMonitorCycleWriter.Create(C);
   // Keep the interface alive while cycles also reference this writer.
   var KeepWriter: IMonitorCycleWriter := Writer;

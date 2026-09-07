@@ -1,0 +1,14 @@
+[Unit]
+Description=Backup logico PostgreSQL dos projetos Solivan
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/fisconexa-backup
+ExecStart=/usr/local/sbin/fisconexa-postgres-backup
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=true
+NoNewPrivileges=true

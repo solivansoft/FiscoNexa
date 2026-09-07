@@ -29,8 +29,13 @@ Documentacao inicial:
 4. Para compilar sem iniciar a API, execute `scripts\build-api.bat win64` e depois
    `powershell -ExecutionPolicy Bypass -File tests\smoke-api.ps1`.
 
-O build unico gera release: `scripts\build-api.bat win64` (Delphi) ou
-`scripts\build-api.bat linux64` (WMLC, assim que o compilador suportar Horse).
+Os builds de release sao `scripts\build-api.bat win64|linux64` e
+`scripts\build-worker.bat win64|linux64`.
+
+O exemplo usado para integrar o ERP real esta em
+`examples\erp-delphi\FiscoNexa.ErpSpike.dpr`. Compile com
+`scripts\build-erp-spike.bat`; o README da pasta documenta smoke, paginacao por
+NSU e download de XML.
 
 O smoke end-to-end do contrato ERP e executado por
 `tests\smoke-erp-end-to-end.ps1`. O oraculo HTTP fica em Delphi, no
@@ -65,7 +70,7 @@ o modulo OpenSSL `legacy`; para inclui-lo no build Windows, defina
 
 Execute `scripts/test-unit.bat`, `scripts/build-worker.bat win64` e
 `powershell -ExecutionPolicy Bypass -File tests/test-release-local.ps1`.
-O ultimo comando compila a API e testa schema, worker simulado, NSU, UniDAC e
+O ultimo comando compila a API e testa schema, worker simulado, NSU, FireDAC e
 HTTP em um banco temporario, removido ao final. Nao consulta a SEFAZ.
 
 `tests/smoke-erp-end-to-end.ps1` usa A1 sintetico, banco isolado e KMS/S3 reais.

@@ -7,13 +7,18 @@ After=network-online.target fisconexa-api.service
 Type=oneshot
 User=fisconexa
 Group=fisconexa
-WorkingDirectory=/opt/fisconexa
+WorkingDirectory=/opt/fisconexa/current
 EnvironmentFile=/etc/fisconexa/fisconexa.env
+EnvironmentFile=-/etc/fisconexa/version.env
 Environment=TZ=UTC
 Environment=FISCONEXA_WORKER_ID=%H-worker
 Environment=FISCONEXA_WORKER_BATCH_SIZE=1
 Environment=FISCONEXA_WORKER_LEASE_SECONDS=7200
-ExecStart=/opt/fisconexa/FiscoNexa.Worker
+Environment=LD_LIBRARY_PATH=/opt/fisconexa/current/lib
+Environment=OPENSSL_MODULES=/opt/fisconexa/current/lib/ossl-modules
+Environment=FISCONEXA_LOG_DIR=/var/log/fisconexa
+Environment=FISCONEXA_INSTANCE_ID=%H-worker
+ExecStart=/opt/fisconexa/current/FiscoNexa.Worker
 TimeoutStartSec=65min
 TimeoutStopSec=30s
 StandardOutput=journal
@@ -21,4 +26,5 @@ StandardError=journal
 SyslogIdentifier=fisconexa-worker
 NoNewPrivileges=true
 PrivateTmp=true
-UMask=0077
+# O grupo fisconexa inclui somente o coletor Alloy; permite leitura dos logs.
+UMask=0027

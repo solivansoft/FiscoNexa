@@ -4,7 +4,7 @@ program FiscoNexa.CompanyOnboardingIntegration;
 
 uses
   System.SysUtils,
-  Uni,
+  FireDAC.Stan.Param, FireDAC.Comp.Client,
   Application.CertificateEnvelope in '..\..\src\application\Application.CertificateEnvelope.pas',
   Application.CertificateIdentity in '..\..\src\application\Application.CertificateIdentity.pas',
   Application.CertificateRegistration in '..\..\src\application\Application.CertificateRegistration.pas',
@@ -19,12 +19,12 @@ begin
     raise EInvalidOpException.Create(AMessage);
 end;
 
-procedure CreateFixture(const AConnection: TUniConnection; out AOrganizationId,
+procedure CreateFixture(const AConnection: TFDConnection; out AOrganizationId,
   AKeyId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text :=
@@ -41,11 +41,11 @@ begin
   end;
 end;
 
-function CountRows(const AConnection: TUniConnection; const ASql, ACompanyId: string): Integer;
+function CountRows(const AConnection: TFDConnection; const ASql, ACompanyId: string): Integer;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := ASql;
@@ -57,12 +57,12 @@ begin
   end;
 end;
 
-procedure DeleteFixture(const AConnection: TUniConnection; const AOrganizationId,
+procedure DeleteFixture(const AConnection: TFDConnection; const AOrganizationId,
   ACnpj: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'delete from organizacoes where id::text = :id';
@@ -77,7 +77,7 @@ begin
 end;
 
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Writer: ICompanyOnboardingWriter;
   Data: TCompanyOnboardingData;
   FirstResult: TCompanyOnboardingResult;

@@ -35,6 +35,7 @@ type
   public
     FailureCalled: Boolean;
     FailureDelaySeconds: Integer;
+    FailureMessage: string;
     procedure CompleteLease(const AWorkerId: string; const ALease: TMonitorLease;
       const AOutcome: TMonitorCycleOutcome;
       const ADocuments: TArray<TSefazDocument>);
@@ -72,6 +73,7 @@ procedure TRecordingWriter.FailLease(const AWorkerId: string;
 begin
   FailureCalled := True;
   FailureDelaySeconds := ADelaySeconds;
+  FailureMessage := AMessage;
 end;
 
 function TUnusedStorage.Put(const ACompanyCnpj, AAccessKey,
@@ -160,6 +162,7 @@ begin
     Cycle.Execute('worker-1', Lease, Now);
     AssertTrue(Writer.FailureCalled);
     AssertEquals(3630, Writer.FailureDelaySeconds);
+    AssertEquals('Exception: Falha de rede simulada', Writer.FailureMessage);
   finally
     Cycle.Free;
   end;

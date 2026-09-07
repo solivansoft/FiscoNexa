@@ -2,12 +2,12 @@ unit Schema.Runner;
 
 interface
 
-uses Uni;
+uses FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TSchemaRunner = class
   public
-    class procedure Apply(const AConnection: TUniConnection); static;
+    class procedure Apply(const AConnection: TFDConnection); static;
   end;
 
 implementation
@@ -16,6 +16,7 @@ uses
   Schema.Definition,
   Schema.Postgres,
   Tables.Auditorias,
+  Tables.Licencas,
   Tables.Certificados,
   Tables.Comandos,
   Tables.Empresas,
@@ -34,7 +35,7 @@ uses
   Tables.Sessoes,
   Tables.Usuarios;
 
-procedure ApplyTable(const AConnection: TUniConnection;
+procedure ApplyTable(const AConnection: TFDConnection;
   const ATable: TTableSchema);
 begin
   try
@@ -44,7 +45,7 @@ begin
   end;
 end;
 
-class procedure TSchemaRunner.Apply(const AConnection: TUniConnection);
+class procedure TSchemaRunner.Apply(const AConnection: TFDConnection);
 begin
   AConnection.StartTransaction;
   try
@@ -67,6 +68,7 @@ begin
     ApplyTable(AConnection, IntegracoesTable);
     ApplyTable(AConnection, DocumentosTable);
     ApplyTable(AConnection, AuditoriasTable);
+    ApplyTable(AConnection, LicencasTable);
     AConnection.Commit;
   except
     AConnection.Rollback;

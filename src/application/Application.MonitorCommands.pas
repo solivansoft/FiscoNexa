@@ -49,6 +49,7 @@ function BuildMonitorCommandOutcome(const AResponse: TDistributionResponse): TMo
 implementation
 
 uses
+  Application.ErrorDescription,
   Application.SefazMonitoringPolicy,
   System.SysUtils;
 
@@ -112,7 +113,7 @@ begin
     FRepository.CompleteLease(AWorkerId, ALease, Outcome, Response.Documents);
   except
     on E: Exception do
-      FRepository.FailLease(AWorkerId, ALease, E.Message,
+      FRepository.FailLease(AWorkerId, ALease, DescricaoErroPersistivel(E),
         TechnicalFailureDelaySeconds(ALease.AttemptCount));
   end;
 end;

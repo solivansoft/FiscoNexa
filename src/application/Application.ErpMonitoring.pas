@@ -25,16 +25,16 @@ implementation
 
 uses
   Database.Connection,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 function GetErpMonitoringStatus(const ACompanyId: string): TErpMonitoringStatus;
 var
-  Connection: TUniConnection;
-  Query: TUniQuery;
+  Connection: TFDConnection;
+  Query: TFDQuery;
 begin
   Connection := TDatabaseConnection.OpenFromEnvironment;
   try
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := Connection;
       Query.SQL.Text :=

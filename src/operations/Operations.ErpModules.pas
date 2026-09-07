@@ -11,14 +11,14 @@ uses
   Database.Connection,
   Persistence.ErpKeys,
   System.SysUtils,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 procedure ChangeErpMonitoringModule(const AAuthorization, ACompanyId, AStatus: string);
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Reader: IErpKeyReader;
   Principal: TErpKeyPrincipal;
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   if not ((AStatus = 'active') or (AStatus = 'suspended') or
     (AStatus = 'cancelled')) then
@@ -28,7 +28,7 @@ begin
     Reader := TPostgresErpKeyReader.Create(Connection);
     Principal := AuthenticateErpKey(AAuthorization, Reader);
     RequireErpScope(Principal, 'modules:write');
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := Connection;
       Query.SQL.Text := 'update empresas_modulos set status = :status, updated_at = now() ' +

@@ -4,15 +4,15 @@ interface
 
 uses
   Application.MonitorLeases,
-  Uni;
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TPostgresMonitorLeaseRepository = class(TInterfacedObject,
     IMonitorLeaseRepository)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     function ClaimDue(const AWorkerId: string; const ABatchSize,
       ALeaseSeconds: Integer): TArray<TMonitorLease>;
   end;
@@ -23,7 +23,7 @@ uses
   System.SysUtils;
 
 constructor TPostgresMonitorLeaseRepository.Create(
-  const AConnection: TUniConnection);
+  const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -34,13 +34,13 @@ end;
 function TPostgresMonitorLeaseRepository.ClaimDue(const AWorkerId: string;
   const ABatchSize, ALeaseSeconds: Integer): TArray<TMonitorLease>;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   Count: Integer;
 begin
   ValidateLeaseRequest(AWorkerId, ABatchSize, ALeaseSeconds);
   SetLength(Result, ABatchSize);
   Count := 0;
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -49,6 +49,10 @@ begin
       '  where status.status = ''active'' ' +
       '    and (status.next_check_at is null or status.next_check_at <= now()) ' +
       '    and (status.lease_until is null or status.lease_until <= now()) ' +
+      '    and (not exists (select 1 from licencas license where license.company_id=status.company_id) ' +
+      '      or exists (select 1 from licencas license where license.company_id=status.company_id ' +
+      '        and (license.situacao=''liberado'' or license.acesso_liberado_ate > now() ' +
+      '          or license.proteger_monitoramento_ate > now()))) ' +
       '    and exists (select 1 from empresas_modulos module ' +
       '      where module.company_id = status.company_id ' +
       '        and module.code = ''monitoring'' and module.status = ''active'') ' +
@@ -58,19 +62,22 @@ begin
       '        and certificate.valid_until >= current_date) ' +
       '  order by status.next_check_at nulls first, status.company_id ' +
       '  limit :batch_size for update skip locked ' +
+      '), claimed as ( ' +
+      '  update status_monitoramento status set lease_owner = :worker_id, ' +
+      '    lease_until = now() + (:lease_seconds * interval ''1 second''), ' +
+      '    updated_at = now() ' +
+      '  from due where status.company_id = due.company_id ' +
+      '  returning status.* ' +
       ') ' +
-      'update status_monitoramento status set lease_owner = :worker_id, ' +
-      '  lease_until = now() + (:lease_seconds * interval ''1 second''), ' +
-      '  updated_at = now() ' +
-      'from due where status.company_id = due.company_id ' +
-      'returning status.company_id::text as company_id, ' +
-      '  (select cnpj from empresas where id = status.company_id) as cnpj, ' +
-      '  coalesce(nullif(status.last_nsu, ''''), ''000000000000000'') as last_nsu, ' +
-      '  coalesce(status.last_cstat, 0) as last_cstat, ' +
-      '  status.blocked_count, status.failure_count';
+      'select claimed.company_id::text as company_id, ' +
+      '  (select cnpj from empresas where id = claimed.company_id) as cnpj, ' +
+      '  coalesce(nullif(claimed.last_nsu, ''''), ''000000000000000'') as last_nsu, ' +
+      '  coalesce(claimed.last_cstat, 0) as last_cstat, ' +
+      '  claimed.blocked_count, claimed.failure_count from claimed';
     Query.ParamByName('batch_size').AsInteger := ABatchSize;
     Query.ParamByName('worker_id').AsString := AWorkerId;
     Query.ParamByName('lease_seconds').AsInteger := ALeaseSeconds;
+    Query.FetchOptions.Mode := fmAll;
     Query.Open;
     while not Query.Eof do
     begin

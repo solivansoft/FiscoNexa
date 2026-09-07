@@ -6,16 +6,16 @@ uses
   Application.MonitorGaps,
   Application.MonitorCycle,
   System.SysUtils,
-  Uni;
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   EMonitorGapLeaseLost = class(Exception);
 
   TPostgresMonitorGapRepository = class(TInterfacedObject, IMonitorGapRepository)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     function ClaimDue(const AWorkerId: string; const ABatchSize,
       ALeaseSeconds: Integer): TArray<TMonitorGapLease>;
     procedure CompleteLease(const AWorkerId: string; const ALease: TMonitorGapLease;
@@ -26,9 +26,10 @@ type
 
 implementation
 
-uses Application.MonitorLeases, Persistence.MonitorCycles;
+uses Application.MonitorLeases, Persistence.MonitorCycles,
+  Persistence.PostgresText;
 
-constructor TPostgresMonitorGapRepository.Create(const AConnection: TUniConnection);
+constructor TPostgresMonitorGapRepository.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -39,13 +40,13 @@ end;
 function TPostgresMonitorGapRepository.ClaimDue(const AWorkerId: string;
   const ABatchSize, ALeaseSeconds: Integer): TArray<TMonitorGapLease>;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   Count: Integer;
 begin
   ValidateLeaseRequest(AWorkerId, ABatchSize, ALeaseSeconds);
   SetLength(Result, ABatchSize);
   Count := 0;
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -59,6 +60,10 @@ begin
       ' where status.status = ''active'' and status.next_check_at > now() ' +
       ' and coalesce(status.last_cstat,0) <> 656 ' +
       ' and (status.lease_until is null or status.lease_until <= now()) ' +
+      ' and (not exists (select 1 from licencas license where license.company_id=status.company_id) ' +
+      '   or exists (select 1 from licencas license where license.company_id=status.company_id ' +
+      '     and (license.situacao=''liberado'' or license.acesso_liberado_ate > now() ' +
+      '       or license.proteger_monitoramento_ate > now()))) ' +
       ' and exists (select 1 from empresas_modulos module where module.company_id = status.company_id ' +
       '   and module.code = ''monitoring'' and module.status = ''active'') ' +
       ' and exists (select 1 from certificados certificate where certificate.company_id = status.company_id ' +
@@ -85,6 +90,7 @@ begin
     Query.ParamByName('batch_size').AsInteger := ABatchSize;
     Query.ParamByName('worker_id').AsString := AWorkerId;
     Query.ParamByName('lease_seconds').AsInteger := ALeaseSeconds;
+    Query.FetchOptions.Mode := fmAll;
     Query.Open;
     while not Query.Eof do
     begin
@@ -105,12 +111,12 @@ end;
 procedure TPostgresMonitorGapRepository.CompleteLease(const AWorkerId: string;
   const ALease: TMonitorGapLease; const AOutcome: TMonitorGapOutcome; const ADocuments: TArray<TSefazDocument>);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   ValidateLeaseRequest(AWorkerId, 1, 1);
   FConnection.StartTransaction;
   try
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FConnection;
       Query.SQL.Text :=
@@ -166,12 +172,12 @@ procedure TPostgresMonitorGapRepository.FailLease(const AWorkerId: string;
   const ALease: TMonitorGapLease; const AMessage: string;
   const ADelaySeconds: Integer);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   ValidateLeaseRequest(AWorkerId, 1, 1);
   if ADelaySeconds <= 0 then
     raise EArgumentOutOfRangeException.Create('Backoff tecnico deve ser positivo.');
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -180,7 +186,7 @@ begin
       '(:delay_seconds * interval ''1 second''), lease_owner = null, lease_until = null, ' +
       'updated_at = now() where id = cast(:gap_id as uuid) and lease_owner = :worker_id ' +
       'and lease_until > now()';
-    Query.ParamByName('message').AsString := Copy(AMessage, 1, 1000);
+    Query.ParamByName('message').AsString := TextoSeguroPostgres(AMessage);
     Query.ParamByName('delay_seconds').AsInteger := ADelaySeconds;
     Query.ParamByName('gap_id').AsString := ALease.GapId;
     Query.ParamByName('worker_id').AsString := AWorkerId;

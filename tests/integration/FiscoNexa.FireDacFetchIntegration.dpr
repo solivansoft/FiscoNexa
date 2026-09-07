@@ -1,11 +1,12 @@
-program FiscoNexa.UniDacFetchIntegration;
+program FiscoNexa.FireDacFetchIntegration;
 
 {$APPTYPE CONSOLE}
 
 uses
   Data.DB,
+  FireDAC.Stan.Option,
   System.SysUtils,
-  Uni,
+  FireDAC.Stan.Param, FireDAC.Comp.Client,
   Database.Connection in '..\..\src\db\Database.Connection.pas';
 
 procedure Require(const ACondition: Boolean; const AMessage: string);
@@ -14,11 +15,11 @@ begin
     raise EInvalidOpException.Create(AMessage);
 end;
 
-procedure ExecuteSql(const AConnection: TUniConnection; const ASql: string);
+procedure ExecuteSql(const AConnection: TFDConnection; const ASql: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := ASql;
@@ -28,16 +29,16 @@ begin
   end;
 end;
 
-procedure SeedItems(const AConnection: TUniConnection; const ACount: Integer);
+procedure SeedItems(const AConnection: TFDConnection; const ACount: Integer);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   Index: Integer;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text :=
-      'insert into unidac_fetch_probe (id, payload) values (:id, :payload)';
+      'insert into firedac_fetch_probe (id, payload) values (:id, :payload)';
     for Index := 1 to ACount do
     begin
       Query.ParamByName('id').AsInteger := Index;
@@ -49,20 +50,21 @@ begin
   end;
 end;
 
-procedure AssertSequentialRead(const AConnection: TUniConnection;
-  const ASmartFetch, ACachedUpdates: Boolean; const AExpectedCount: Integer;
+procedure AssertSequentialRead(const AConnection: TFDConnection;
+  const AFetchAll, ACachedUpdates: Boolean; const AExpectedCount: Integer;
   const AScenario: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   ExpectedId: Integer;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
-    Query.FetchRows := 25;
-    Query.SmartFetch.Enabled := ASmartFetch;
+    Query.FetchOptions.RowsetSize := 25;
+    if AFetchAll then Query.FetchOptions.Mode := fmAll
+    else Query.FetchOptions.Mode := fmOnDemand;
     Query.CachedUpdates := ACachedUpdates;
-    Query.SQL.Text := 'select id, payload from unidac_fetch_probe order by id';
+    Query.SQL.Text := 'select id, payload from firedac_fetch_probe order by id';
     Query.Open;
     ExpectedId := 1;
     while not Query.Eof do
@@ -79,20 +81,21 @@ begin
   end;
 end;
 
-procedure AssertSqlPagination(const AConnection: TUniConnection;
-  const ASmartFetch, ACachedUpdates: Boolean; const AExpectedCount: Integer;
+procedure AssertSqlPagination(const AConnection: TFDConnection;
+  const AFetchAll, ACachedUpdates: Boolean; const AExpectedCount: Integer;
   const AScenario: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   LastId: Integer;
   ExpectedId: Integer;
   ReadCount: Integer;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
-    Query.FetchRows := 25;
-    Query.SmartFetch.Enabled := ASmartFetch;
+    Query.FetchOptions.RowsetSize := 25;
+    if AFetchAll then Query.FetchOptions.Mode := fmAll
+    else Query.FetchOptions.Mode := fmOnDemand;
     Query.CachedUpdates := ACachedUpdates;
     LastId := 0;
     ExpectedId := 1;
@@ -100,7 +103,7 @@ begin
     repeat
       Query.Close;
       Query.SQL.Text :=
-        'select id, payload from unidac_fetch_probe where id > :last_id ' +
+        'select id, payload from firedac_fetch_probe where id > :last_id ' +
         'order by id limit 7';
       Query.ParamByName('last_id').AsInteger := LastId;
       Query.Open;
@@ -121,54 +124,55 @@ begin
   end;
 end;
 
-procedure AppendAndVerify(const AConnection: TUniConnection;
-  const ASmartFetch, ACachedUpdates, AInTransaction: Boolean;
+procedure AppendAndVerify(const AConnection: TFDConnection;
+  const AFetchAll, ACachedUpdates, AInTransaction: Boolean;
   const AInitialCount: Integer; const AScenario: string);
 var
-  Writer: TUniQuery;
+  Writer: TFDQuery;
 begin
-  Writer := TUniQuery.Create(nil);
+  Writer := TFDQuery.Create(nil);
   try
     Writer.Connection := AConnection;
-    Writer.FetchRows := 25;
-    Writer.SmartFetch.Enabled := ASmartFetch;
+    Writer.FetchOptions.RowsetSize := 25;
+    if AFetchAll then Writer.FetchOptions.Mode := fmAll
+    else Writer.FetchOptions.Mode := fmOnDemand;
     Writer.CachedUpdates := ACachedUpdates;
-    Writer.SQL.Text := 'select id, payload from unidac_fetch_probe order by id';
+    Writer.SQL.Text := 'select id, payload from firedac_fetch_probe order by id';
     Writer.Open;
     Writer.Append;
     Writer.FieldByName('id').AsInteger := AInitialCount + 1;
     Writer.FieldByName('payload').AsString := 'item-' + IntToStr(AInitialCount + 1);
     Writer.Post;
     if ACachedUpdates then
-      Writer.ApplyUpdates;
+      Require(Writer.ApplyUpdates(0) = 0, AScenario + ': erro aplicando cache');
     if AInTransaction then
       AConnection.Commit;
-    AssertSequentialRead(AConnection, ASmartFetch, ACachedUpdates,
+    AssertSequentialRead(AConnection, AFetchAll, ACachedUpdates,
       AInitialCount + 1, AScenario);
   finally
     Writer.Free;
   end;
 end;
 
-procedure RunScenario(const AConnection: TUniConnection; const ASmartFetch,
+procedure RunScenario(const AConnection: TFDConnection; const AFetchAll,
   ACachedUpdates, AInTransaction: Boolean; const AItemCount: Integer);
 var
   Scenario: string;
 begin
-  Scenario := Format('items=%d smart=%s cache=%s transaction=%s', [
+  Scenario := Format('items=%d fetch_all=%s cache=%s transaction=%s', [
     AItemCount,
-    BoolToStr(ASmartFetch, True), BoolToStr(ACachedUpdates, True),
+    BoolToStr(AFetchAll, True), BoolToStr(ACachedUpdates, True),
     BoolToStr(AInTransaction, True)]);
-  ExecuteSql(AConnection, 'drop table if exists unidac_fetch_probe');
+  ExecuteSql(AConnection, 'drop table if exists pg_temp.firedac_fetch_probe');
   ExecuteSql(AConnection,
-    'create table unidac_fetch_probe (id integer primary key, payload varchar(40) not null)');
+    'create temporary table firedac_fetch_probe (id integer primary key, payload varchar(40) not null)');
   try
     if AInTransaction then
       AConnection.StartTransaction;
     SeedItems(AConnection, AItemCount);
-    AssertSequentialRead(AConnection, ASmartFetch, ACachedUpdates, AItemCount, Scenario);
-    AssertSqlPagination(AConnection, ASmartFetch, ACachedUpdates, AItemCount, Scenario);
-    AppendAndVerify(AConnection, ASmartFetch, ACachedUpdates, AInTransaction,
+    AssertSequentialRead(AConnection, AFetchAll, ACachedUpdates, AItemCount, Scenario);
+    AssertSqlPagination(AConnection, AFetchAll, ACachedUpdates, AItemCount, Scenario);
+    AppendAndVerify(AConnection, AFetchAll, ACachedUpdates, AInTransaction,
       AItemCount, Scenario);
     Writeln('OK ', Scenario);
   except
@@ -176,26 +180,26 @@ begin
       AConnection.Rollback;
     raise;
   end;
-  ExecuteSql(AConnection, 'drop table unidac_fetch_probe');
+  ExecuteSql(AConnection, 'drop table pg_temp.firedac_fetch_probe');
 end;
 
 var
-  Connection: TUniConnection;
-  SmartFetch: Boolean;
+  Connection: TFDConnection;
+  FetchAll: Boolean;
   CachedUpdates: Boolean;
   InTransaction: Boolean;
 begin
   Connection := TDatabaseConnection.OpenFromEnvironment;
   try
-    for SmartFetch in [False, True] do
+    for FetchAll in [False, True] do
       for CachedUpdates in [False, True] do
         for InTransaction in [False, True] do
         begin
-          RunScenario(Connection, SmartFetch, CachedUpdates, InTransaction, 30);
-          RunScenario(Connection, SmartFetch, CachedUpdates, InTransaction, 101);
-          RunScenario(Connection, SmartFetch, CachedUpdates, InTransaction, 251);
+          RunScenario(Connection, FetchAll, CachedUpdates, InTransaction, 30);
+          RunScenario(Connection, FetchAll, CachedUpdates, InTransaction, 101);
+          RunScenario(Connection, FetchAll, CachedUpdates, InTransaction, 251);
         end;
-    Writeln('Smoke UniDAC aprovado: 24 cenarios leram 30, 101 e 251 itens e confirmaram escrita.');
+    Writeln('Smoke FireDAC aprovado: 24 cenarios leram 30, 101 e 251 itens e confirmaram escrita.');
   finally
     Connection.Free;
   end;

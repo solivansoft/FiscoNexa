@@ -94,6 +94,7 @@ function BuildMonitorCycleOutcome(const ALease: TMonitorLease;
 implementation
 
 uses
+  Application.ErrorDescription,
   Application.SefazMonitoringPolicy,
   System.DateUtils,
   System.SysUtils;
@@ -183,7 +184,11 @@ begin
       // Gateway pode falhar durante a ciencia depois de consultar distribuicao.
       if RetrySeconds < SefazWaitSeconds then
         RetrySeconds := SefazWaitSeconds;
-      FWriter.FailLease(AWorkerId, ALease, E.Message, RetrySeconds);
+      // Mensagens vindas de bibliotecas nativas podem conter bytes que nao
+      // pertencem ao contrato UTF-8 do PostgreSQL. O estado persistido usa um
+      // codigo estavel; detalhes ficam fora do caminho critico de liberar lease.
+      FWriter.FailLease(AWorkerId, ALease,
+        DescricaoErroPersistivel(E), RetrySeconds);
     end;
   end;
 end;

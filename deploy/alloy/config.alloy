@@ -1,0 +1,39 @@
+// Mesmo arquivo no Windows e Ubuntu; caminhos absolutos via ambiente.
+local.file_match "aplicacao" {
+  path_targets = [{
+    __path__ = sys.env("LOG_FILES"),
+    projeto = sys.env("LOG_PROJECT"),
+    ambiente = sys.env("LOG_ENVIRONMENT"),
+    instancia = sys.env("LOG_INSTANCE"),
+  }]
+  sync_period = "1s"
+}
+loki.source.file "aplicacao" {
+  targets = local.file_match.aplicacao.targets
+  forward_to = [loki.process.aplicacao.receiver]
+}
+loki.process "aplicacao" {
+  stage.json {
+    expressions = {nivel = "nivel", servico = "servico"}
+  }
+  stage.labels {
+    values = {nivel = "", servico = ""}
+  }
+  // IDs de requisicao, CNPJ e NSU ficam no JSON, nunca como labels.
+  forward_to = [loki.write.central.receiver]
+}
+loki.write "central" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+    batch_wait = "1s"
+    batch_size = "256KiB"
+    remote_timeout = "10s"
+    min_backoff_period = "1s"
+    max_backoff_period = "30s"
+    max_backoff_retries = 20
+    basic_auth {
+      username = sys.env("LOKI_USERNAME")
+      password = sys.env("LOKI_PASSWORD")
+    }
+  }
+}

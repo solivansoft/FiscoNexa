@@ -4,14 +4,14 @@ interface
 
 uses
   Application.Authentication,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TPostgresAuthenticationStore = class(TInterfacedObject, IAuthenticationStore)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     procedure CreateFirstSuperadmin(const AEmail, ADisplayName, APasswordHash: string);
     function FindUserByEmail(const AEmail: string; out AUser: TAuthUser): Boolean;
     procedure CreateSession(const AUserId, AAccessTokenHash, ARefreshTokenHash: string;
@@ -29,7 +29,7 @@ uses
   Data.DB,
   System.SysUtils;
 
-constructor TPostgresAuthenticationStore.Create(const AConnection: TUniConnection);
+constructor TPostgresAuthenticationStore.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -40,9 +40,9 @@ end;
 procedure TPostgresAuthenticationStore.CreateFirstSuperadmin(const AEmail,
   ADisplayName, APasswordHash: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -63,10 +63,10 @@ end;
 function TPostgresAuthenticationStore.FindUserByEmail(const AEmail: string;
   out AUser: TAuthUser): Boolean;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   AUser := Default(TAuthUser);
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -93,9 +93,9 @@ procedure TPostgresAuthenticationStore.CreateSession(const AUserId,
   AAccessTokenHash, ARefreshTokenHash: string; const AAccessExpiresAt,
   ARefreshExpiresAt: TDateTime);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -115,10 +115,10 @@ end;
 function TPostgresAuthenticationStore.FindSessionUser(const ATokenHash: string;
   out AUser: TAuthUser): Boolean;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   AUser := Default(TAuthUser);
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -148,10 +148,10 @@ end;
 function TPostgresAuthenticationStore.FindRefreshSessionUser(
   const ATokenHash: string; out AUser: TAuthUser): Boolean;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   AUser := Default(TAuthUser);
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -180,9 +180,9 @@ end;
 
 procedure TPostgresAuthenticationStore.RevokeByRefreshTokenHash(const ATokenHash: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text := 'update sessoes set revoked_at = now() ' +
@@ -196,9 +196,9 @@ end;
 
 procedure TPostgresAuthenticationStore.RevokeByAccessTokenHash(const ATokenHash: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text := 'update sessoes set revoked_at = now() ' +
@@ -213,11 +213,11 @@ end;
 procedure TPostgresAuthenticationStore.ChangePassword(const AUserId,
   APasswordHash: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   FConnection.StartTransaction;
   try
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FConnection;
       Query.SQL.Text := 'update usuarios set password_hash = :password_hash ' +

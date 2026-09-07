@@ -6,16 +6,16 @@ uses
   Application.MonitorCommands,
   Application.MonitorCycle,
   System.SysUtils,
-  Uni;
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   EMonitorCommandLeaseLost = class(Exception);
 
   TPostgresMonitorCommandRepository = class(TInterfacedObject, IMonitorCommandRepository)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     function ClaimDue(const AWorkerId: string; const ABatchSize,
       ALeaseSeconds: Integer): TArray<TMonitorCommandLease>;
     procedure CompleteLease(const AWorkerId: string; const ALease: TMonitorCommandLease;
@@ -29,9 +29,10 @@ implementation
 
 uses
   Application.MonitorLeases,
-  Persistence.MonitorCycles;
+  Persistence.MonitorCycles,
+  Persistence.PostgresText;
 
-constructor TPostgresMonitorCommandRepository.Create(const AConnection: TUniConnection);
+constructor TPostgresMonitorCommandRepository.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -42,13 +43,13 @@ end;
 function TPostgresMonitorCommandRepository.ClaimDue(const AWorkerId: string;
   const ABatchSize, ALeaseSeconds: Integer): TArray<TMonitorCommandLease>;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   Count: Integer;
 begin
   ValidateLeaseRequest(AWorkerId, ABatchSize, ALeaseSeconds);
   SetLength(Result, ABatchSize);
   Count := 0;
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -62,6 +63,10 @@ begin
       ' where status.status = ''active'' and status.next_check_at > now() ' +
       ' and coalesce(status.last_cstat,0) <> 656 ' +
       ' and (status.lease_until is null or status.lease_until <= now()) ' +
+      ' and (not exists (select 1 from licencas license where license.company_id=status.company_id) ' +
+      '   or exists (select 1 from licencas license where license.company_id=status.company_id ' +
+      '     and (license.situacao=''liberado'' or license.acesso_liberado_ate > now() ' +
+      '       or license.proteger_monitoramento_ate > now()))) ' +
       ' and exists (select 1 from empresas_modulos module where module.company_id = status.company_id ' +
       '   and module.code = ''monitoring'' and module.status = ''active'') ' +
       ' and exists (select 1 from certificados certificate where certificate.company_id = status.company_id ' +
@@ -88,6 +93,7 @@ begin
     Query.ParamByName('batch_size').AsInteger := ABatchSize;
     Query.ParamByName('worker_id').AsString := AWorkerId;
     Query.ParamByName('lease_seconds').AsInteger := ALeaseSeconds;
+    Query.FetchOptions.Mode := fmAll;
     Query.Open;
     while not Query.Eof do
     begin
@@ -109,12 +115,12 @@ procedure TPostgresMonitorCommandRepository.CompleteLease(const AWorkerId: strin
   const ALease: TMonitorCommandLease; const AOutcome: TMonitorCommandOutcome;
   const ADocuments: TArray<TSefazDocument>);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   DocumentWriter: TPostgresMonitorCycleWriter;
 begin
   FConnection.StartTransaction;
   try
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FConnection;
       Query.SQL.Text :=
@@ -171,9 +177,9 @@ procedure TPostgresMonitorCommandRepository.FailLease(const AWorkerId: string;
   const ALease: TMonitorCommandLease; const AMessage: string;
   const ADelaySeconds: Integer);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -181,7 +187,7 @@ begin
       'last_message = :message, run_after = now() + (:delay_seconds * interval ''1 second''), ' +
       'lease_owner = null, lease_until = null where id = cast(:command_id as uuid) ' +
       'and lease_owner = :worker_id and lease_until > now()';
-    Query.ParamByName('message').AsString := Copy(AMessage, 1, 1000);
+    Query.ParamByName('message').AsString := TextoSeguroPostgres(AMessage);
     Query.ParamByName('delay_seconds').AsInteger := ADelaySeconds;
     Query.ParamByName('command_id').AsString := ALease.CommandId;
     Query.ParamByName('worker_id').AsString := AWorkerId;

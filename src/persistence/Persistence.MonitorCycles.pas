@@ -7,17 +7,17 @@ uses
   Application.MonitorLeases,
   System.SysUtils,
   System.DateUtils,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   EMonitorLeaseLost = class(Exception);
 
   TPostgresMonitorCycleWriter = class(TInterfacedObject, IMonitorCycleWriter)
   private
-    FConnection: TUniConnection;
+    FConnection: TFDConnection;
     procedure SaveGap(const ACompanyId: string; const AOutcome: TMonitorCycleOutcome);
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     procedure CompleteLease(const AWorkerId: string; const ALease: TMonitorLease;
       const AOutcome: TMonitorCycleOutcome;
       const ADocuments: TArray<TSefazDocument>);
@@ -29,7 +29,10 @@ type
 
 implementation
 
-constructor TPostgresMonitorCycleWriter.Create(const AConnection: TUniConnection);
+uses
+  Persistence.PostgresText;
+
+constructor TPostgresMonitorCycleWriter.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -40,11 +43,11 @@ end;
 procedure TPostgresMonitorCycleWriter.SaveGap(const ACompanyId: string;
   const AOutcome: TMonitorCycleOutcome);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   if (AOutcome.GapStartNsu = '') or (AOutcome.GapEndNsu = '') then
     Exit;
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -64,14 +67,14 @@ end;
 procedure TPostgresMonitorCycleWriter.SaveDocuments(const ACompanyId: string;
   const ADocuments: TArray<TSefazDocument>);
 var
-  Query, Command: TUniQuery;
+  Query, Command: TFDQuery;
   Document: TSefazDocument;
 begin
   if Length(ADocuments) = 0 then Exit;
   if not FConnection.InTransaction then
     raise EInvalidOpException.Create('Documentos exigem transacao do ciclo.');
-  Query := TUniQuery.Create(nil);
-  Command := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
+  Command := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Command.Connection := FConnection;
@@ -164,12 +167,12 @@ procedure TPostgresMonitorCycleWriter.CompleteLease(const AWorkerId: string;
   const ALease: TMonitorLease; const AOutcome: TMonitorCycleOutcome;
   const ADocuments: TArray<TSefazDocument>);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   ValidateLeaseRequest(AWorkerId, 1, 1);
   FConnection.StartTransaction;
   try
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FConnection;
       Query.SQL.Text :=
@@ -209,12 +212,12 @@ procedure TPostgresMonitorCycleWriter.FailLease(const AWorkerId: string;
   const ALease: TMonitorLease; const AMessage: string;
   const ADelaySeconds: Integer);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   ValidateLeaseRequest(AWorkerId, 1, 1);
   if ADelaySeconds <= 0 then
     raise EArgumentOutOfRangeException.Create('Backoff tecnico deve ser positivo.');
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=
@@ -224,7 +227,7 @@ begin
       'lease_owner = null, lease_until = null, updated_at = now() ' +
       'where company_id = cast(:company_id as uuid) and lease_owner = :worker_id ' +
       'and lease_until > now()';
-    Query.ParamByName('last_error').AsString := Copy(AMessage, 1, 1000);
+    Query.ParamByName('last_error').AsString := TextoSeguroPostgres(AMessage);
     Query.ParamByName('delay_seconds').AsInteger := ADelaySeconds;
     Query.ParamByName('company_id').AsString := ALease.CompanyId;
     Query.ParamByName('worker_id').AsString := AWorkerId;

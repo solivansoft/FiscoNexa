@@ -1,10 +1,10 @@
 ﻿program FiscoNexa.SchemaIntegration;
 {$APPTYPE CONSOLE}
-uses System.SysUtils, Uni, Database.Connection, Schema.Runner, Schema.Postgres,
+uses System.SysUtils, FireDAC.Stan.Param, FireDAC.Comp.Client, Database.Connection, Schema.Runner, Schema.Postgres,
   Schema.Definition;
 procedure Require(Value: Boolean; const Msg: string);
 begin if not Value then raise Exception.Create(Msg); end;
-var C: TUniConnection; Q: TUniQuery; T: TTableSchema; Rejected: Boolean;
+var C: TFDConnection; Q: TFDQuery; T: TTableSchema; Rejected: Boolean;
 begin
   C := TDatabaseConnection.OpenFromEnvironment;
   try
@@ -12,7 +12,7 @@ begin
     TSchemaRunner.Apply(C);
     C.ExecSQL('insert into empresas (cnpj,state,legal_name) values (''00000000000001'',''PA'',''Preservar'')');
     TSchemaRunner.Apply(C);
-    Q := TUniQuery.Create(nil);
+    Q := TFDQuery.Create(nil);
     try
       Q.Connection := C;
       Q.SQL.Text := 'select count(*) as n from empresas where legal_name = ''Preservar'''; Q.Open;

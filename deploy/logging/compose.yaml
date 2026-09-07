@@ -1,0 +1,47 @@
+name: central-logs
+services:
+  loki:
+    image: grafana/loki:3.7.0
+    command: -config.file=/etc/loki/config.yaml
+    restart: unless-stopped
+    mem_limit: 1536m
+    volumes:
+      - ./loki.yaml:/etc/loki/config.yaml:ro
+      - loki:/loki
+    logging:
+      options: {max-size: "10m", max-file: "3"}
+  grafana:
+    image: grafana/grafana:12.1.1
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Defina a senha administrativa}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_ROOT_URL: ${LOGS_PUBLIC_URL:?Defina a URL publica}
+    volumes:
+      - grafana:/var/lib/grafana
+      - ./datasources:/etc/grafana/provisioning/datasources:ro
+    logging:
+      options: {max-size: "10m", max-file: "3"}
+  gateway:
+    image: caddy:2.10.0
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      LOGS_ADDRESS: ${LOGS_ADDRESS:?Defina o endereco do Caddy}
+    ports:
+      - "${LOGS_BIND_IP:-127.0.0.1}:80:80"
+      - "${LOGS_BIND_IP:-127.0.0.1}:443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./projects:/etc/caddy/projects:ro
+      - caddy:/data
+      - caddy_config:/config
+    logging:
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  loki:
+  grafana:
+  caddy:
+  caddy_config:

@@ -8,7 +8,7 @@ if not exist "%ROOT%\build\tests\win64\dcu" mkdir "%ROOT%\build\tests\win64\dcu"
 call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
 if errorlevel 1 exit /b 1
 
-dcc64 -B -E"%ROOT%\bin\tests\win64" -N0"%ROOT%\build\tests\win64\dcu" -NS"System;Xml;Data;Datasnap;Web;Soap;Winapi;Vcl" -U"%ROOT%\tests";"%ROOT%\tests\unit";"%ROOT%\src\application";"%ROOT%\src\db";"%ROOT%\src\integrations";"%ROOT%\src\persistence";"%ROOT%\src\persistence\schema";"C:\Program Files (x86)\Devart\UniDAC for RAD Studio 12\Lib\Win64" "%ROOT%\tests\unit\FiscoNexa.UnitTests.dpr"
+dcc64 -B -E"%ROOT%\bin\tests\win64" -N0"%ROOT%\build\tests\win64\dcu" -NS"System;Xml;Data;Datasnap;Web;Soap;Winapi;Vcl" -U"%ROOT%\tests";"%ROOT%\tests\unit";"%ROOT%\src\application";"%ROOT%\src\db";"%ROOT%\src\integrations";"%ROOT%\src\persistence";"%ROOT%\src\persistence\schema" "%ROOT%\tests\unit\FiscoNexa.UnitTests.dpr"
 if errorlevel 1 exit /b 1
 
 set "PATH=%ROOT%\vendor\postgres-client\pgsql\bin;%PATH%"

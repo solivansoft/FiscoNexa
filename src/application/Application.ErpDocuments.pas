@@ -41,13 +41,13 @@ implementation
 uses
   Database.Connection,
   System.SysUtils,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 function ListErpDocuments(const ACompanyId: string; const ASinceNsu: Int64;
   const ALimit: Integer): TErpDocumentPage;
 var
-  Connection: TUniConnection;
-  Query: TUniQuery;
+  Connection: TFDConnection;
+  Query: TFDQuery;
   Item: TErpDocumentSummary;
   Count: Integer;
 begin
@@ -61,7 +61,7 @@ begin
   try
     Connection := TDatabaseConnection.OpenFromEnvironment;
     try
-      Query := TUniQuery.Create(nil);
+      Query := TFDQuery.Create(nil);
       try
         Query.Connection := Connection;
         Query.SQL.Text :=
@@ -107,7 +107,7 @@ begin
 end;
 
 function RequestErpDocumentXml(const ACompanyId, ADocumentId: string): TErpXmlRequest;
-var C: TUniConnection; Q: TUniQuery; DocumentGuid: TGUID; AccessKey: string;
+var C: TFDConnection; Q: TFDQuery; DocumentGuid: TGUID; AccessKey: string;
   AwarenessCStat: Integer;
 begin
   Result := Default(TErpXmlRequest);
@@ -117,7 +117,7 @@ begin
   try
     C.StartTransaction;
     try
-      Q := TUniQuery.Create(nil);
+      Q := TFDQuery.Create(nil);
       try
         Q.Connection := C;
         Q.SQL.Text := 'select id from empresas where id=cast(:company_id as uuid) for update';

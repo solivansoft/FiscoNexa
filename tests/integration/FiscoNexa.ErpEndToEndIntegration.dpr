@@ -12,7 +12,7 @@ uses
   System.Net.URLClient,
   System.NetEncoding,
   System.SysUtils,
-  Uni,
+  FireDAC.Stan.Param, FireDAC.Comp.Client,
   Application.ErpKeys in '..\..\src\application\Application.ErpKeys.pas',
   Application.MonitorCycle in '..\..\src\application\Application.MonitorCycle.pas',
   Database.Connection in '..\..\src\db\Database.Connection.pas',
@@ -93,12 +93,12 @@ begin
   Result := Value.Value;
 end;
 
-procedure InsertBootstrapKey(const AConnection: TUniConnection; const AToken: string;
+procedure InsertBootstrapKey(const AConnection: TFDConnection; const AToken: string;
   out AOrganizationId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text :=
@@ -116,11 +116,11 @@ begin
   end;
 end;
 
-function CompanyCnpj(const AConnection: TUniConnection; const ACompanyId: string): string;
+function CompanyCnpj(const AConnection: TFDConnection; const ACompanyId: string): string;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'select cnpj from empresas where id = cast(:company_id as uuid)';
@@ -133,12 +133,12 @@ begin
   end;
 end;
 
-function InsertDocument(const AConnection: TUniConnection; const ACompanyId,
+function InsertDocument(const AConnection: TFDConnection; const ACompanyId,
   AAccessKey, AObjectKey, ASha256: string): string;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text :=
@@ -157,12 +157,12 @@ begin
   end;
 end;
 
-procedure DeleteFixtures(const AConnection: TUniConnection; const ACompanyId,
+procedure DeleteFixtures(const AConnection: TFDConnection; const ACompanyId,
   AOrganizationId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     if ACompanyId <> '' then
@@ -182,12 +182,12 @@ begin
   end;
 end;
 
-procedure VerifyModuleSuspended(const AConnection: TUniConnection;
+procedure VerifyModuleSuspended(const AConnection: TFDConnection;
   const ACompanyId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'select status from empresas_modulos where company_id = cast(:company_id as uuid) ' +
@@ -202,7 +202,7 @@ begin
 end;
 
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Client: THTTPClient;
   Storage: TAwsS3XmlStorage;
   Payload: TJSONObject;

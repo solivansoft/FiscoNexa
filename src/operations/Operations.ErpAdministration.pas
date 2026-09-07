@@ -15,9 +15,9 @@ uses
   Database.Connection,
   Operations.Authentication,
   Persistence.ErpAdministration,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
-function CreateService(out AConnection: TUniConnection): TErpAdministrationService;
+function CreateService(out AConnection: TFDConnection): TErpAdministrationService;
 var
   Store: IErpAdministrationStore;
 begin
@@ -28,7 +28,7 @@ end;
 
 function CreateErp(const AAuthorization, ALegalName, AKeyLabel: string): TErpKeyIssue;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TErpAdministrationService;
 begin
   RequireSuperadmin(AAuthorization);
@@ -43,7 +43,7 @@ end;
 
 function RotateErpKey(const AAuthorization, AErpId, AKeyLabel: string): TErpKeyIssue;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TErpAdministrationService;
 begin
   RequireSuperadmin(AAuthorization);
@@ -58,7 +58,7 @@ end;
 
 procedure RevokeErpKey(const AAuthorization, AErpId, AKeyId: string);
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Service: TErpAdministrationService;
 begin
   RequireSuperadmin(AAuthorization);

@@ -149,6 +149,7 @@ var
   Certificate: TActiveCertificateMaterial;
   NFe: TACBrNFe;
   Retorno: TRetDistDFeInt;
+  ErrorDetail: string;
 begin
   Certificate := FCertificateProvider.LoadActive(ACompanyId);
   try
@@ -184,7 +185,15 @@ begin
         begin
           Retorno := NFe.WebServices.DistribuicaoDFe.RetDistDFeInt;
           if (not Assigned(Retorno)) or (Retorno.CStat = 0) then
-            raise;
+          begin
+            ErrorDetail := Trim(E.Message);
+            if ErrorDetail = '' then
+              ErrorDetail := E.ClassName
+            else
+              ErrorDetail := E.ClassName + ': ' + ErrorDetail;
+            raise EInvalidOpException.Create(
+              'Falha tecnica na consulta de distribuicao ACBr: ' + ErrorDetail);
+          end;
         end;
       end;
       Result := ReadResponse(NFe, Certificate);

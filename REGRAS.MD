@@ -258,3 +258,7 @@ prevalecem quando houver conflito.
 - Logs nao contem senha, token, certificado A1, chave privada nem conteudo
   integral de XML fiscal. A infraestrutura de coleta, busca, retencao e
   alertas sera definida no item de observabilidade do ledger.
+
+## Migracao FireDAC ? 2026-09-06
+
+Por autorizacao expressa do operador, FireDAC substitui UniDAC no acesso PostgreSQL da API, worker e testes compartilhados. As regras anteriores de UniDAC ficam como historico; a exigencia de leitura completa, paginacao e transacoes permanece para FireDAC, com fetch sob demanda e integral. Nao executar fluxos fiscais reais para validar a migracao.

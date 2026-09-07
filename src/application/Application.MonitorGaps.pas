@@ -49,6 +49,7 @@ function BuildMonitorGapOutcome(const ALease: TMonitorGapLease;
 implementation
 
 uses
+  Application.ErrorDescription,
   Application.SefazMonitoringPolicy,
   System.SysUtils;
 
@@ -106,7 +107,8 @@ begin
     FRepository.CompleteLease(AWorkerId, ALease, Outcome, Response.Documents);
   except
     on E: Exception do
-      FRepository.FailLease(AWorkerId, ALease, E.Message, SefazWaitSeconds);
+      FRepository.FailLease(AWorkerId, ALease,
+        DescricaoErroPersistivel(E), SefazWaitSeconds);
   end;
 end;
 

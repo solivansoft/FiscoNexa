@@ -8,10 +8,15 @@ StartLimitIntervalSec=0
 Type=simple
 User=fisconexa
 Group=fisconexa
-WorkingDirectory=/opt/fisconexa
+WorkingDirectory=/opt/fisconexa/current
 EnvironmentFile=/etc/fisconexa/fisconexa.env
+EnvironmentFile=-/etc/fisconexa/version.env
 Environment=TZ=UTC
-ExecStart=/opt/fisconexa/FiscoNexa.Api
+Environment=LD_LIBRARY_PATH=/opt/fisconexa/current/lib
+Environment=OPENSSL_MODULES=/opt/fisconexa/current/lib/ossl-modules
+Environment=FISCONEXA_LOG_DIR=/var/log/fisconexa
+Environment=FISCONEXA_INSTANCE_ID=%H-api
+ExecStart=/opt/fisconexa/current/FiscoNexa.Api
 Restart=always
 RestartSec=10s
 TimeoutStopSec=30s
@@ -20,7 +25,8 @@ StandardError=journal
 SyslogIdentifier=fisconexa-api
 NoNewPrivileges=true
 PrivateTmp=true
-UMask=0077
+# O grupo fisconexa inclui somente o coletor Alloy; permite leitura dos logs.
+UMask=0027
 
 [Install]
 WantedBy=multi-user.target

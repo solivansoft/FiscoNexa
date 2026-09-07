@@ -21,6 +21,29 @@
 - XML pendente retorna 202 e reutiliza o comando por tenant/documento.
 - Pendente homologar o fluxo fiscal real do `MVP-006`.
 
+### Manifestacao conclusiva e fechamento mensal
+
+- Manter Ciencia da Emissao automatica quando a NF-e for localizada dentro do
+  prazo, para permitir a obtencao do XML sem declarar que a operacao ocorreu.
+- Nao registrar Confirmacao da Operacao automaticamente apenas para obter XML.
+  Confirmacao, Desconhecimento ou Operacao Nao Realizada exigem decisao explicita
+  do ERP/usuario ou evidencia confiavel do recebimento registrada pelo ERP.
+- Criar `POST /v1/documentos/{id_documento}/manifestacoes`, idempotente e
+  assincrono. Entrada minima: `tipo`, `baixar_xml` e `referencia_erp`. A API
+  retorna 202; o worker manifesta, aguarda a propagacao da SEFAZ e agenda a
+  obtencao do XML quando a manifestacao for aceita.
+- Auditar ator/token ERP, tipo, referencia, data, cStat e resultado, sem registrar
+  certificado, senha ou XML integral.
+- Expor ao ERP os estados `xml_disponivel`, `manifestacao_pendente`,
+  `prazo_expirando` e `indisponivel_por_prazo`.
+- Alertar documentos sem XML aos 60, 75 e 85 dias e permitir manifestacao em
+  lote no fechamento mensal. O lote deve exigir escolha explicita por documento
+  ou evidencia do ERP; a necessidade contabil nao presume que a operacao ocorreu.
+- Gate: confirmar em smoke real que uma manifestacao conclusiva aceita cria uma
+  unica tentativa de download, persiste o XML no S3 e o disponibiliza somente ao
+  tenant correto. Cobrir repeticao idempotente, cStat recusado, prazo expirado e
+  isolamento entre tenants.
+
 ## Infraestrutura
 
 - Escolher provedor da VPS, PostgreSQL e storage S3.

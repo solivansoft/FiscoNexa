@@ -9,9 +9,11 @@ implementation
 uses
   System.JSON,
   System.SysUtils,
+  Application.CommercialAccess,
   Application.ErpDocuments,
   Application.ErpIntegration,
   Integrations.AwsS3Xml,
+  Operations.CommercialAccess,
   Horse;
 
 function DocumentoNumero(const AChaveAcesso: string): string;
@@ -100,6 +102,7 @@ var
   Principal: TErpIntegrationPrincipal;
   Request: TErpXmlRequest;
   Storage: TAwsS3XmlStorage;
+  ProtectedUntil: string;
 begin
   try
     Principal := AuthenticateErpToken(ARequest.Headers['Authorization']);
@@ -109,6 +112,16 @@ begin
     on E: EErpIntegrationUnauthorized do
     begin
       AResponse.Status(THTTPStatus.Unauthorized).Send(''); Exit;
+    end;
+  end;
+  try
+    RequireCommercialDelivery(Principal.CompanyId, ProtectedUntil);
+  except
+    on E: ECommercialAccessRestricted do
+    begin
+      AResponse.ContentType('application/json').Status(402).Send(
+        '{"erro":{"codigo":"licenca_restrita","mensagem":"Acesso aos XMLs temporariamente restrito."}}');
+      Exit;
     end;
   end;
   Request := RequestErpDocumentXml(Principal.CompanyId, ARequest.Params['id_documento']);
@@ -141,6 +154,7 @@ begin
       Principal: TErpIntegrationPrincipal;
       Documents: TErpDocumentPage;
       SinceNsu, Limit: Int64;
+      ProtectedUntil: string;
     begin
       try
         Principal := AuthenticateErpToken(ARequest.Headers['Authorization']);
@@ -155,6 +169,17 @@ begin
           AResponse.ContentType('application/json').Send(
             '{"erro":{"codigo":"integracao_nao_autorizada","mensagem":"Token de integracao ausente ou invalido."}}'
           ).Status(THTTPStatus.Unauthorized);
+          Exit;
+        end;
+      end;
+
+      try
+        RequireCommercialDelivery(Principal.CompanyId, ProtectedUntil);
+      except
+        on E: ECommercialAccessRestricted do
+        begin
+          AResponse.ContentType('application/json').Status(402).Send(
+            '{"erro":{"codigo":"licenca_restrita","mensagem":"Acesso aos documentos temporariamente restrito."}}');
           Exit;
         end;
       end;

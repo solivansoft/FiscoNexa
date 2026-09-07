@@ -5,15 +5,15 @@ interface
 uses
   Application.CertificateMaterial,
   System.SysUtils,
-  Uni;
+  FireDAC.Stan.Param, FireDAC.Comp.Client;
 
 type
   TPostgresStoredCertificateReader = class(TInterfacedObject, IStoredCertificateReader)
   private
-    FConnection: TUniConnection;
-    function ReadBytes(const AQuery: TUniQuery; const AFieldName: string): TBytes;
+    FConnection: TFDConnection;
+    function ReadBytes(const AQuery: TFDQuery; const AFieldName: string): TBytes;
   public
-    constructor Create(const AConnection: TUniConnection);
+    constructor Create(const AConnection: TFDConnection);
     function ReadActive(const ACompanyId: string): TStoredCertificateMaterial;
   end;
 
@@ -23,7 +23,7 @@ uses
   Data.DB,
   System.Classes;
 
-constructor TPostgresStoredCertificateReader.Create(const AConnection: TUniConnection);
+constructor TPostgresStoredCertificateReader.Create(const AConnection: TFDConnection);
 begin
   inherited Create;
   if AConnection = nil then
@@ -31,7 +31,7 @@ begin
   FConnection := AConnection;
 end;
 
-function TPostgresStoredCertificateReader.ReadBytes(const AQuery: TUniQuery;
+function TPostgresStoredCertificateReader.ReadBytes(const AQuery: TFDQuery;
   const AFieldName: string): TBytes;
 var
   Stream: TStream;
@@ -49,10 +49,10 @@ end;
 function TPostgresStoredCertificateReader.ReadActive(
   const ACompanyId: string): TStoredCertificateMaterial;
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
   Result := Default(TStoredCertificateMaterial);
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := FConnection;
     Query.SQL.Text :=

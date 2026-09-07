@@ -4,6 +4,9 @@ program FiscoNexa.UnitTests;
 
 uses
   TestFramework,
+  Tests.ErrorDescription in 'Tests.ErrorDescription.pas',
+  Tests.PostgresText in 'Tests.PostgresText.pas',
+  Tests.Licencas in 'Tests.Licencas.pas',
   Tests.MonitorCommands in 'Tests.MonitorCommands.pas',
   Tests.AwsSignature in 'Tests.AwsSignature.pas',
   Tests.BrazilianStates in 'Tests.BrazilianStates.pas',

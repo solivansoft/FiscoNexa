@@ -6,8 +6,12 @@ vendor/
 bin/
 build/
 obj/
+dist/
+logs/
+*.log
 *.dcu
 *.dcp
 *.rsm
+*.res
 *.identcache
 *.local

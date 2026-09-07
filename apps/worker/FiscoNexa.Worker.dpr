@@ -6,7 +6,7 @@ uses
   System.SysUtils,
   Application.MonitorCommands,
   Persistence.MonitorCommands,
-  Uni,
+  FireDAC.Stan.Param, FireDAC.Comp.Client,
   Application.CertificateEnvelope in '..\..\src\application\Application.CertificateEnvelope.pas',
   Application.CertificateMaterial in '..\..\src\application\Application.CertificateMaterial.pas',
   Application.MonitorCycle in '..\..\src\application\Application.MonitorCycle.pas',
@@ -23,6 +23,7 @@ uses
   Persistence.MonitorCycles in '..\..\src\persistence\Persistence.MonitorCycles.pas',
   Persistence.MonitorGaps in '..\..\src\persistence\Persistence.MonitorGaps.pas',
   Persistence.MonitorLeases in '..\..\src\persistence\Persistence.MonitorLeases.pas',
+  Operations.StructuredLogs,
   Worker.Monitoring in '..\..\src\worker\Worker.Monitoring.pas';
 
 function RequiredEnvironmentValue(const AName: string): string;
@@ -76,8 +77,9 @@ begin
   raise EInvalidOpException.Create('Modo mock nao aceita persistencia de XML.');
 end;
 
+procedure ExecutarWorker;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   LeaseRepository: IMonitorLeaseRepository;
   CycleWriter: IMonitorCycleWriter;
   GapRepository: IMonitorGapRepository;
@@ -95,6 +97,7 @@ var
   Worker: TMonitoringWorker;
   WorkerId: string;
   SefazMode: string;
+  ProcessedCount: Integer;
 begin
   SefazMode := LowerCase(GetEnvironmentVariable('FISCONEXA_SEFAZ_MODE'));
   if (SefazMode <> 'mock') and (SefazMode <> 'acbr') then
@@ -136,9 +139,11 @@ begin
           Worker := TMonitoringWorker.Create(LeaseRepository, Cycle, GapRepository, GapRecovery,
             CommandRepository, CommandProcessor);
           try
-            Writeln('Ciclos processados: ', Worker.RunOnce(WorkerId,
+            ProcessedCount := Worker.RunOnce(WorkerId,
               PositiveEnvironmentInteger('FISCONEXA_WORKER_BATCH_SIZE', 50),
-              PositiveEnvironmentInteger('FISCONEXA_WORKER_LEASE_SECONDS', 300)));
+              PositiveEnvironmentInteger('FISCONEXA_WORKER_LEASE_SECONDS', 300));
+            RegistrarLog('info', 'worker', 'ciclo_worker_concluido',
+              Format('{"tarefas_processadas":%d}', [ProcessedCount]));
           finally
             Worker.Free;
           end;
@@ -153,5 +158,18 @@ begin
     end;
   finally
     Connection.Free;
+  end;
+end;
+
+begin
+  try
+    ExecutarWorker;
+  except
+    on E: Exception do
+    begin
+      RegistrarLog('erro', 'worker', 'worker_interrompido',
+        '{"classe":"' + E.ClassName + '"}');
+      ExitCode := 1;
+    end;
   end;
 end.

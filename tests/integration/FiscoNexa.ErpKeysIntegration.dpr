@@ -4,7 +4,7 @@ program FiscoNexa.ErpKeysIntegration;
 
 uses
   System.SysUtils,
-  Uni,
+  FireDAC.Stan.Param, FireDAC.Comp.Client,
   Application.ErpKeys in '..\..\src\application\Application.ErpKeys.pas',
   Application.Authorization in '..\..\src\application\Application.Authorization.pas',
   Database.Connection in '..\..\src\db\Database.Connection.pas',
@@ -15,12 +15,12 @@ begin
   raise EInvalidOpException.Create(AMessage);
 end;
 
-procedure InsertFixture(const AConnection: TUniConnection; const AToken: string;
+procedure InsertFixture(const AConnection: TFDConnection; const AToken: string;
   out AOrganizationId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text :=
@@ -38,11 +38,11 @@ begin
   end;
 end;
 
-procedure RevokeFixture(const AConnection: TUniConnection; const AToken: string);
+procedure RevokeFixture(const AConnection: TFDConnection; const AToken: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'update chaves_erp set revoked_at = now() where key_hash = :key_hash';
@@ -53,14 +53,14 @@ begin
   end;
 end;
 
-procedure InsertTenantToken(const AConnection: TUniConnection; const AToken: string;
+procedure InsertTenantToken(const AConnection: TFDConnection; const AToken: string;
   out ACompanyId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   Cnpj: string;
 begin
   Cnpj := '99' + FormatDateTime('yymmddhhnnss', Now);
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text :=
@@ -78,12 +78,12 @@ begin
   end;
 end;
 
-procedure DeleteFixture(const AConnection: TUniConnection;
+procedure DeleteFixture(const AConnection: TFDConnection;
   const AOrganizationId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'delete from organizacoes where id::text = :organization_id';
@@ -94,12 +94,12 @@ begin
   end;
 end;
 
-procedure DeleteTenantFixture(const AConnection: TUniConnection;
+procedure DeleteTenantFixture(const AConnection: TFDConnection;
   const ACompanyId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'delete from empresas where id::text = :company_id';
@@ -135,7 +135,7 @@ begin
 end;
 
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Reader: IErpKeyReader;
   Principal: TErpKeyPrincipal;
   OrganizationId: string;

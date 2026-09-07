@@ -41,7 +41,8 @@ do que e somente planejado e define a proxima dependencia elegivel.
 | DB-001 | OK | O mesmo executavel aplica somente migrations pendentes. | 2026-09-05: `tests/test-release-local.ps1` cria banco isolado, aplica o schema declarativo repetidamente e verifica preservacao dos dados. |
 | API-001 | OK | A API responde `GET /saude` apos migrar o banco. | `tests\smoke-api.ps1` aprovado. |
 | API-ARCH-001 | OK | A API possui fronteiras, ciclo de requisicao e contrato HTTP definidos antes de novas rotas. | [Arquitetura da API](ARQUITETURA_API.md) revisada contra as invariantes de CNPJ. |
-| LINUX-001 | BLOQUEADO | API Horse compila para Linux pelo WMLC. | 2026-09-05: revalidado com paths de units; WMLC rejeita `class destructor` em `Horse.Core.pas(111:11)`. Units systemd preparadas, sem binarios Linux homologados nem deploy. |
+| LINUX-001 | OK | API e worker compilam nativamente para Linux64 e executam no Ubuntu com as bibliotecas ACBr declaradas. | 2026-09-07: `scripts\build-api.bat linux64` e `scripts\build-worker.bat linux64` aprovados com `dcclinux64`; API respondeu `/saude` no WSL e o worker consultou tres certificados reais, sem bloqueio, incluindo avancos NSU 50->79 e 0->4525. |
+| PROD-DATA-001 | OK | A promocao da base piloto preserva integralmente cursores fiscais, documentos e referencias externas; nenhum tenant homologado reinicia do NSU zero. | 2026-09-07: dump/restauracao para `dados.vps` comparou 19 tabelas e invariantes: 8 empresas, 124 documentos, 119 XMLs, 127 comandos e sequencia 375; API aplicou `licencas` sem alterar os dados fiscais. |
 
 ## Roteiro por dependencia
 
@@ -58,6 +59,7 @@ do que e somente planejado e define a proxima dependencia elegivel.
 | ERP-BOOTSTRAP-001 | PENDENTE | domain/application/persistence | DB-001 | Credencial opaca do fornecedor de ERP possui escopo `companies:onboard`, nao pertence a CNPJ e nao pode ler documentos. | token invalido e token de tenant sao recusados; credencial bootstrap nao lista nem le documento. |
 | CERT-001 | PENDENTE | integrations/application | ERP-BOOTSTRAP-001, MVP-001 | Certificado A1 e senha sao cifrados por envelope; plaintext nunca entra no log, evento ou banco. | chave KMS separada para certificados; teste de cifra, varredura de logs e recuperacao do certificado pelo worker antes de qualquer rota. |
 | MONITOR-001 | PENDENTE | application | COMPANY-001, CERT-001 | Configuracao de monitoramento valida flags de manifestacao automatica por CNPJ. | atualizar e ler configuracao somente com grant admin. |
+| MANIFEST-ERP-001 | PENDENTE | api/application/worker | MVP-006, AUDIT-001 | ERP solicita manifestacao conclusiva idempotente por documento, opcionalmente encadeada ao download do XML; confirmacao nunca e inferida apenas pela necessidade contabil. Documentos sem XML recebem estados e alertas aos 60, 75 e 85 dias. | Smoke real cobre confirmacao, desconhecimento e operacao nao realizada, cStat aceito/recusado, download unico ao S3, auditoria, expiracao e isolamento entre tenants. |
 | COMMAND-001 | PENDENTE | domain/persistence | MONITOR-001 | Comando fiscal tem chave de idempotencia, estados e lock logico por CNPJ. | tentativa dupla cria um unico comando executavel. |
 | WORKER-001 | PENDENTE | worker | COMMAND-001 | Worker simulado reclama e conclui um comando sem duplicar efeito. | dois workers concorrentes, um unico executor. |
 | DFE-001 | PENDENTE | integrations/worker | WORKER-001, CERT-001 | Adaptador SEFAZ materializa documentos e cursor/NSU sem pular lacunas. | fixtures do servico atual e homologacao posterior. |
@@ -81,13 +83,14 @@ do que e somente planejado e define a proxima dependencia elegivel.
 | PILOT-004 | PENDENTE | integrations/application/api | PILOT-003 | XML e guardado em storage S3 com hash; banco mantem metadata e SHA-256. | `tests\smoke-s3.ps1` ja aprovou PUT/GET real assinado, TLS valido e SHA-256; falta encadear com ciencia homologada. |
 | PILOT-005 | PENDENTE | api | PILOT-001, PILOT-004 | ERP consome documentos prontos sem enviar nem escolher CNPJ. | `tests\smoke-erp-documents.ps1` ja aprovou isolamento por token, NSU crescente, retomada e 401/404 no XML; falta o fluxo fiscal homologado. |
 | ERP-INTEGRATION-001 | PENDENTE | operations/integrations | MVP-006 | O ERP proprio consome o contrato fechado do FiscoNexa: ativa CNPJ, guarda token do tenant, sincroniza por NSU e baixa XML para o pre-lancamento local. | ambiente piloto com CNPJ real; carga inicial e retomada apos reinicio sem duplicar lancamento. |
+| ERP-SPIKE-001 | OK | operations/integrations | PILOT-001, PILOT-005 | Executavel Delphi de referencia consulta saude, monitoramento, pagina documentos por NSU e baixa XML usando token de tenant. | 2026-09-07: `scripts\build-erp-spike.bat` gerou `FiscoNexa.ErpSpike.exe`; smoke na API de producao recebeu tres HTTP 200 e baixou XML valido de 9.020 bytes. |
 | ERP-ADMIN-001 | OK | api/application/persistence | MVP-002, AUTH-001 | Superadmin cadastra ERP, emite/rotaciona sua chave bootstrap e permite revoga-la sem expor hashes. | 2026-09-05: `scripts\test-unit.bat` cobre hash sem segredo; `tests\smoke-auth-admin.ps1` comprovou 401 sem Bearer, 403 para usuario comum, criacao, rotacao e revogacao de chave. |
 
 ## Observabilidade operacional
 
 | ID | Estado | Camada | Depende de | Contrato observavel | Oraculo / gate |
 | --- | --- | --- | --- | --- | --- |
-| LOG-001 | PENDENTE | operations/api/worker | API-001, MVP-005 | Logs estruturados de API e worker agregados em cluster, com instancia, versao, UTC, correlacao HTTP/fiscal, cStat, tentativas e proxima elegibilidade; sem segredos ou XML integral. | Duas instancias permitem reconstruir a mesma operacao; teste de redacao de segredos e consulta centralizada de erros; definir retencao e alertas. |
+| LOG-001 | OK | operations/api/worker | API-001, MVP-005 | Logs estruturados de API e worker sao agregados fora da VPS da aplicacao, separados por projeto e sem token, senha, certificado ou XML integral. | 2026-09-07: API/worker escrevem JSON em console e arquivos rotativos; Alloy enviou em ate um segundo para Loki multi-tenant no `loki.vps`; Grafana possui datasource isolado `fisconexa`, com retencao de sete dias. |
 
 ## Inventario de rotas
 
@@ -162,3 +165,9 @@ devolve documentos paginados por NSU proprio ao ERP pelo token do proprio CNPJ.
 Fora do MVP: frontend, login humano, tela do contador, compartilhamento, cobranca no FiscoNexa, cadastro autonomo de ERP parceiro e automacoes de pre-lancamento.
 
 O ERP continua dono de contratacao e cancelamento. Cancelamento interrompe novos ciclos, sem apagar XML ja retido.
+
+## Migracao autorizada de acesso PostgreSQL ? 2026-09-06
+
+| ID | Estado | Camada | Dependencias | Entrega | Evidencia |
+| --- | --- | --- | --- | --- | --- |
+| DB-FD-001 | OK | persistence | - | Substituir UniDAC por FireDAC na conexao, consultas e builds compartilhados, preservando SQL e variaveis de ambiente. | API e worker DCC Win64 compilados; scripts/test-unit.bat: 69/69; tests/smoke-firedac-fetch.ps1: 24/24, tabela temporaria, 30/101/251 registros, fetch integral/sob demanda, cache, transacoes e pagina SQL. Nao certifica compilacao WMLC nem execucao fiscal ponta a ponta. |

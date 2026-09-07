@@ -7,7 +7,7 @@ uses
   Integration.MonitorPipeline,
   System.SysUtils,
   System.SyncObjs,
-  Uni,
+  FireDAC.Stan.Param, FireDAC.Comp.Client,
   Application.MonitorLeases in '..\..\src\application\Application.MonitorLeases.pas',
   Application.MonitorCycle in '..\..\src\application\Application.MonitorCycle.pas',
   Application.MonitorGaps in '..\..\src\application\Application.MonitorGaps.pas',
@@ -48,7 +48,7 @@ end;
 
 procedure TLeaseClaimer.Execute;
 var
-  Connection: TUniConnection;
+  Connection: TFDConnection;
   Repository: IMonitorLeaseRepository;
 begin
   try
@@ -66,14 +66,14 @@ begin
   end;
 end;
 
-procedure CreateFixture(const AConnection: TUniConnection; out AOrganizationId,
+procedure CreateFixture(const AConnection: TFDConnection; out AOrganizationId,
   AFirstCompanyId, ASecondCompanyId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
   CnpjPrefix: string;
 begin
   CnpjPrefix := FormatDateTime('yymmddhhnnss', Now);
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text :=
@@ -137,12 +137,12 @@ begin
   end;
 end;
 
-procedure DeleteFixture(const AConnection: TUniConnection; const AOrganizationId,
+procedure DeleteFixture(const AConnection: TFDConnection; const AOrganizationId,
   AFirstCompanyId, ASecondCompanyId: string);
 var
-  Query: TUniQuery;
+  Query: TFDQuery;
 begin
-  Query := TUniQuery.Create(nil);
+  Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
     Query.SQL.Text := 'delete from empresas where id::text in (:first_id, :second_id)';
@@ -158,14 +158,14 @@ begin
 end;
 
 var
-  FirstConnection: TUniConnection;
+  FirstConnection: TFDConnection;
   StartGate: TEvent;
   FirstWorker: TLeaseClaimer;
   SecondWorker: TLeaseClaimer;
   CycleWriter: IMonitorCycleWriter;
   Response: TDistributionResponse;
   Outcome: TMonitorCycleOutcome;
-  Query: TUniQuery;
+  Query: TFDQuery;
   GapRepository: IMonitorGapRepository;
   GapLeases: TArray<TMonitorGapLease>;
   GapResponse: TDistributionResponse;
@@ -211,7 +211,7 @@ begin
     Outcome := BuildMonitorCycleOutcome(FirstWorker.Leases[0], Response, Now);
     CycleWriter := TPostgresMonitorCycleWriter.Create(FirstConnection);
     CycleWriter.CompleteLease('worker-one', FirstWorker.Leases[0], Outcome, []);
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FirstConnection;
       Query.SQL.Text :=
@@ -232,7 +232,7 @@ begin
       Query.Free;
     end;
     GapRepository := TPostgresMonitorGapRepository.Create(FirstConnection);
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FirstConnection;
       Query.SQL.Text :=
@@ -245,7 +245,7 @@ begin
     GapLeases := GapRepository.ClaimDue('gap-worker', 1, 300);
     Require(Length(GapLeases) = 0,
       'Lacuna concorreu com monitoramento principal vencido.');
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FirstConnection;
       Query.SQL.Text :=
@@ -265,7 +265,7 @@ begin
     GapResponse.MessageText := 'Sem documento pontual';
     GapOutcome := BuildMonitorGapOutcome(GapLeases[0], GapResponse);
     GapRepository.CompleteLease('gap-worker', GapLeases[0], GapOutcome, []);
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FirstConnection;
       Query.SQL.Text :=
@@ -285,7 +285,7 @@ begin
     GapLeases := GapRepository.ClaimDue('gap-worker-two', 1, 300);
     Require(Length(GapLeases) = 0,
       'Lacuna ignorou intervalo minimo entre consultas pontuais.');
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FirstConnection;
       Query.SQL.Text :=
@@ -306,7 +306,7 @@ begin
     GapLeases := GapRepository.ClaimDue('gap-worker-three', 1, 300);
     Require(Length(GapLeases) = 0,
       'Lacuna ignorou limite de quinze consultas pontuais por hora.');
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FirstConnection;
       Query.SQL.Text :=
@@ -325,7 +325,7 @@ begin
     CancelledLeaseRepository := TPostgresMonitorLeaseRepository.Create(FirstConnection);
     Require(Length(CancelledLeaseRepository.ClaimDue('cancelled-worker', 10, 300)) = 0,
       'Modulo cancelado voltou para a fila de monitoramento.');
-    Query := TUniQuery.Create(nil);
+    Query := TFDQuery.Create(nil);
     try
       Query.Connection := FirstConnection;
       Query.SQL.Text :=

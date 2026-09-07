@@ -29,10 +29,10 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Build do teste de leases falhou.' }
   & (Join-Path $root 'bin\tests\win64\FiscoNexa.MonitorLeasesIntegration.exe')
   if ($LASTEXITCODE -ne 0) { throw 'Teste de leases falhou.' }
-  & (Join-Path $root 'scripts\test-unidac-fetch.bat')
-  if ($LASTEXITCODE -ne 0) { throw 'Build do teste UniDAC falhou.' }
-  & (Join-Path $root 'bin\tests\win64\FiscoNexa.UniDacFetchIntegration.exe')
-  if ($LASTEXITCODE -ne 0) { throw 'Teste UniDAC falhou.' }
+  & (Join-Path $root 'scripts\test-firedac-fetch.bat')
+  if ($LASTEXITCODE -ne 0) { throw 'Build do teste FireDAC falhou.' }
+  & (Join-Path $root 'bin\tests\win64\FiscoNexa.FireDacFetchIntegration.exe')
+  if ($LASTEXITCODE -ne 0) { throw 'Teste FireDAC falhou.' }
   $env:POSTGRES_DB = $database
   & (Join-Path $root 'tests\smoke-erp-documents.ps1') -UseCurrentEnvironment
 } finally {
