@@ -11,3 +11,8 @@ cada projeto recebe um caminho e uma credencial pelo `adicionar-projeto.sh`.
 
 O Grafana usa a mesma entrada do Caddy. No modo privado, acesse
 `http://10.77.0.3/` a partir de um computador conectado a WireGuard.
+
+O dashboard `dashboards/fisconexa-operacao.json` acompanha requisicoes e erros
+HTTP, latencia P95, trabalho do worker, volume por servico e logs recentes. Ele
+usa o datasource provisionado `logs-fisconexa` e pode ser importado pela API ou
+pela interface do Grafana.

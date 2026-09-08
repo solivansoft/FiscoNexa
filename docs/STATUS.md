@@ -1,6 +1,6 @@
 # Status
 
-Atualizado em 2026-09-07 20:10 (America/Sao_Paulo).
+Atualizado em 2026-09-07 20:30 (America/Sao_Paulo).
 
 ## Producao
 
@@ -70,6 +70,11 @@ servicos `api` e `worker`. Grafana consulta o tenant `fisconexa`. Loki exige
 `X-Scope-OrgID`, e cada projeto recebe rota, usuario, senha e datasource
 separados. A retencao atual e de sete dias. Docker, WireGuard, Loki, Grafana e o
 gateway retornaram automaticamente em reinicializacao controlada.
+
+O dashboard `FiscoNexa - Operacao`, na pasta `FiscoNexa`, possui 11 paineis
+para requisicoes e status HTTP, erros 5xx, latencia P95, tarefas fiscais,
+eventos por servico, rotas mais acessadas e logs recentes. Todas as consultas
+foram validadas pela API do Loki antes da publicacao.
 
 ## Pendencias comerciais
 
