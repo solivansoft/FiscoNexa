@@ -4,6 +4,25 @@ Atualizado em 2026-09-08 (America/Sao_Paulo).
 
 ## Assinaturas e Asaas em homologacao
 
+Deploy em producao concluido em 2026-09-08 07:04 UTC. A release
+`2026.09.08-assinaturas-rc2` esta ativa, com API, worker fiscal e conciliador
+de cobrancas habilitados no systemd. As credenciais do arquivo local
+`D:\Hostinger\credenciais\asaas-production.env` foram validadas no Asaas e
+instaladas em `/etc/fisconexa/asaas.env`, permissao 0600.
+O webhook FiscoNexa foi corrigido diretamente no Asaas para
+`https://api.fisconexa.com.br/webhooks/asaas`, configurado com eventos de cartao
+e habilitado depois do smoke. O webhook Delphos/licencas foi preservado.
+
+Backup completo anterior ao deploy validado por catalogo pg_restore e SHA256,
+com copia em D:\Backups. A comparacao antes/depois, ainda com worker parado,
+comprovou hashes identicos de empresas, certificados, documentos e estado de
+monitoramento: 8 tenants, 157 documentos e 122 referencias de XML.
+Os 8 trials terminam em `2026-09-23T07:03:26.618997Z` (04:03 BRT).
+O worker fiscal foi retomado somente depois dessa verificacao.
+O EXE Delphi passou em producao para health, monitoramento, documentos,
+assinatura trial e planos. Webhook devolve 401 sem segredo e 422 com segredo
+valido e corpo invalido. Nenhuma cobranca real de teste foi criada.
+
 Implementadas migrations de planos, trial de 15 dias, assinatura direta/parceiro,
 cobrancas com escolha na fatura Asaas e QR Pix, pedidos idempotentes e inbox de webhooks. Contrato do ERP em
 [ASSINATURAS_ERP.md](ASSINATURAS_ERP.md). Mensal R$49,90, trimestral R$149,70,
@@ -47,19 +66,18 @@ AWAITING_CRITICAL_ACTION_AUTHORIZATION no painel Asaas. O teste retomavel e
 esse estorno Pix concluido ate receber PAYMENT_REFUNDED e conferir o prazo final.
 O estorno de cartao foi concluido e validado separadamente no provedor real sandbox.
 A regra de estorno concluido/parcial e coberta por teste unitario e a remocao
-do periodo por teste SQL. Credenciais reais ainda nao fornecidas.
+do periodo por teste SQL. Credenciais reais configuradas no deploy acima.
 
-As migrations de assinatura ainda NAO foram aplicadas em producao. A producao
-segue na rc9 abaixo; os trials dos tenants reais iniciarao no deploy desta
-funcionalidade. Usuario pediu para aguardar os tokens de producao antes do deploy.
-Gate pendente: autorizacao do estorno Pix de teste e configurar/validar o
-Asaas producao antes de habilitar cobrancas reais. Nao apontar token
-sandbox para o banco real. Toda credencial permanece fora do repositorio.
+As migrations de assinatura foram aplicadas em producao depois que o usuario
+forneceu os tokens. A pendencia externa restante deste smoke e a autorizacao
+do estorno Pix no sandbox. Pagamento real de cliente sera acompanhado pelo
+webhook e conciliador de producao; nao foi simulado pagamento com dinheiro real.
+Toda credencial permanece fora do repositorio.
 
 ## Producao
 
 A API e o worker Linux estao instalados no `fisconexa.vps` como release
-`2026.09.07-rc9`. `https://api.fisconexa.com.br/health` responde
+`2026.09.08-assinaturas-rc2`. `https://api.fisconexa.com.br/health` responde
 `{"situacao":"disponivel"}`. API, timer do worker, Caddy, Alloy, WireGuard e
 fail2ban estao habilitados e ativos no systemd. Uma reinicializacao controlada
 comprovou que os servicos retornam sem intervencao.
