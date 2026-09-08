@@ -20,4 +20,3 @@ scrape_configs:
           vps: logs
           funcao: observabilidade
           ambiente: producao
-

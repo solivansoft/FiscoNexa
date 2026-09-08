@@ -16,4 +16,3 @@ systemctl restart prometheus-node-exporter.service
 systemctl is-active --quiet prometheus-node-exporter.service
 curl -fsS --max-time 3 "http://$endereco/metrics" >/dev/null
 echo "Node Exporter ativo em $endereco."
-
