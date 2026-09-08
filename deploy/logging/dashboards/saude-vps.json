@@ -1,0 +1,147 @@
+{
+  "annotations": {"list": []},
+  "description": "Saude das VPS de aplicacao, banco de dados e observabilidade pela rede WireGuard.",
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red"}, {"color": "yellow", "value": 2}, {"color": "green", "value": 3}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "sum(up{job=\"vps\"})", "instant": true, "legendFormat": "VPS online", "range": false, "refId": "A"}],
+      "title": "VPS online",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 1, "max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green"}, {"color": "yellow", "value": 70}, {"color": "red", "value": 85}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "id": 2,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "max(100 - avg by (vps) (rate(node_cpu_seconds_total{job=\"vps\",mode=\"idle\"}[5m])) * 100)", "instant": true, "legendFormat": "Maior CPU", "range": false, "refId": "A"}],
+      "title": "Maior uso de CPU",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 1, "max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green"}, {"color": "yellow", "value": 75}, {"color": "red", "value": 90}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "id": 3,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "max(100 * (1 - node_memory_MemAvailable_bytes{job=\"vps\"} / node_memory_MemTotal_bytes{job=\"vps\"}))", "instant": true, "legendFormat": "Maior memoria", "range": false, "refId": "A"}],
+      "title": "Maior uso de memoria",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "decimals": 1, "max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green"}, {"color": "yellow", "value": 75}, {"color": "red", "value": 90}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "id": 4,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "max(100 * (1 - node_filesystem_avail_bytes{job=\"vps\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"vps\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"}))", "instant": true, "legendFormat": "Maior disco", "range": false, "refId": "A"}],
+      "title": "Maior uso do disco raiz",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 18, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "spanNulls": false}, "max": 100, "min": 0, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "id": 5,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "100 - avg by (vps) (rate(node_cpu_seconds_total{job=\"vps\",mode=\"idle\"}[$__rate_interval])) * 100", "legendFormat": "{{vps}}", "range": true, "refId": "A"}],
+      "title": "Uso de CPU por VPS",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 18, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "spanNulls": false}, "max": 100, "min": 0, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "id": 6,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"vps\"} / node_memory_MemTotal_bytes{job=\"vps\"})", "legendFormat": "{{vps}}", "range": true, "refId": "A"}],
+      "title": "Uso de memoria por VPS",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 18, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "spanNulls": false}, "max": 100, "min": 0, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "id": 7,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"vps\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{job=\"vps\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"})", "legendFormat": "{{vps}}", "range": true, "refId": "A"}],
+      "title": "Uso do disco raiz",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 12, "lineInterpolation": "smooth", "lineWidth": 2, "showPoints": "never", "spanNulls": false}, "min": 0, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "id": 8,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "100 * node_load1{job=\"vps\"} / on (vps) count by (vps) (node_cpu_seconds_total{job=\"vps\",mode=\"idle\"})", "legendFormat": "{{vps}}", "range": true, "refId": "A"}],
+      "title": "Carga de 1 minuto por CPU",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2, "showPoints": "never", "spanNulls": false}, "min": 0, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+      "id": 9,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "sum by (vps) (rate(node_network_receive_bytes_total{job=\"vps\",device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval]))", "legendFormat": "{{vps}} recebido", "range": true, "refId": "A"},
+        {"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "sum by (vps) (rate(node_network_transmit_bytes_total{job=\"vps\",device!~\"lo|veth.*|docker.*|br-.*\"}[$__rate_interval]))", "legendFormat": "{{vps}} enviado", "range": true, "refId": "B"}
+      ],
+      "title": "Trafego de rede",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "fillOpacity": 10, "lineWidth": 2, "showPoints": "never", "spanNulls": false}, "min": 0, "unit": "Bps"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+      "id": 10,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "sum by (vps) (rate(node_disk_read_bytes_total{job=\"vps\",device!~\"loop.*|ram.*\"}[$__rate_interval]))", "legendFormat": "{{vps}} leitura", "range": true, "refId": "A"},
+        {"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "sum by (vps) (rate(node_disk_written_bytes_total{job=\"vps\",device!~\"loop.*|ram.*\"}[$__rate_interval]))", "legendFormat": "{{vps}} escrita", "range": true, "refId": "B"}
+      ],
+      "title": "I/O de disco",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "unit": "s"}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 28},
+      "id": 11,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "time() - node_boot_time_seconds{job=\"vps\"}", "instant": true, "legendFormat": "{{vps}}", "range": false, "refId": "A"}],
+      "title": "Uptime",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green"}, {"color": "yellow", "value": 50}, {"color": "red", "value": 80}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 28},
+      "id": 12,
+      "options": {"displayMode": "gradient", "maxVizHeight": 300, "minVizHeight": 16, "minVizWidth": 8, "namePlacement": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "metricas-infraestrutura"}, "editorMode": "code", "expr": "100 * (1 - node_memory_SwapFree_bytes{job=\"vps\"} / clamp_min(node_memory_SwapTotal_bytes{job=\"vps\"}, 1))", "instant": true, "legendFormat": "{{vps}}", "range": false, "refId": "A"}],
+      "title": "Uso de swap",
+      "type": "bargauge"
+    }
+  ],
+  "refresh": "15s",
+  "schemaVersion": 41,
+  "tags": ["infraestrutura", "vps", "producao"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Saude das VPS",
+  "uid": "saude-vps",
+  "version": 1,
+  "weekStart": "monday"
+}

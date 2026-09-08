@@ -22,6 +22,22 @@ services:
     volumes:
       - grafana:/var/lib/grafana
       - ./datasources:/etc/grafana/provisioning/datasources:ro
+      - ./dashboard-provisioning.yaml:/etc/grafana/provisioning/dashboards/fisconexa.yaml:ro
+      - ./dashboards:/var/lib/grafana/dashboards:ro
+    logging:
+      options: {max-size: "10m", max-file: "3"}
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=5GB
+    restart: unless-stopped
+    mem_limit: 768m
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
     logging:
       options: {max-size: "10m", max-file: "3"}
   gateway:
@@ -45,3 +61,4 @@ volumes:
   grafana:
   caddy:
   caddy_config:
+  prometheus:

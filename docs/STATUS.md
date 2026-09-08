@@ -1,6 +1,6 @@
 # Status
 
-Atualizado em 2026-09-07 20:30 (America/Sao_Paulo).
+Atualizado em 2026-09-07 22:50 (America/Sao_Paulo).
 
 ## Producao
 
@@ -75,6 +75,14 @@ O dashboard `FiscoNexa - Operacao`, na pasta `FiscoNexa`, possui 11 paineis
 para requisicoes e status HTTP, erros 5xx, latencia P95, tarefas fiscais,
 eventos por servico, rotas mais acessadas e logs recentes. Todas as consultas
 foram validadas pela API do Loki antes da publicacao.
+
+O Prometheus `3.14.0` roda no mesmo Compose, sem porta publicada, e conserva
+ate 15 dias ou 5 GB de series. Os Node Exporters instalados para esse painel
+estao habilitados nas tres VPS e ouvem somente nos enderecos WireGuard usados
+pelo coletor. O dashboard `Saude das VPS` possui 12 paineis para
+disponibilidade, CPU, memoria, disco, carga, rede, I/O, uptime e swap. Os tres
+alvos retornaram `up=1` antes e depois da reinicializacao controlada do
+Prometheus.
 
 ## Pendencias comerciais
 
