@@ -1,6 +1,60 @@
 # Status
 
-Atualizado em 2026-09-07 22:50 (America/Sao_Paulo).
+Atualizado em 2026-09-08 (America/Sao_Paulo).
+
+## Assinaturas e Asaas em homologacao
+
+Implementadas migrations de planos, trial de 15 dias, assinatura direta/parceiro,
+cobrancas com escolha na fatura Asaas e QR Pix, pedidos idempotentes e inbox de webhooks. Contrato do ERP em
+[ASSINATURAS_ERP.md](ASSINATURAS_ERP.md). Mensal R$49,90, trimestral R$149,70,
+anual R$499,00. Avisos iniciam tres dias antes do vencimento. A entrega expira
+com a assinatura; monitoramento permanece protegido por mais 30 dias.
+
+Sandbox publico em `https://sandbox.fisconexa.com.br`, API Linux nativa com
+usuario, diretorio e banco separados. Porta 9001 ligada somente em localhost;
+Caddy fornece HTTPS. `fisconexa-sandbox-api.service` reinicia em falhas;
+`fisconexa-sandbox-cobrancas.timer` concilia a cada dez segundos apos termino.
+Nenhum worker fiscal ou certificado de cliente foi colocado no sandbox.
+
+Webhook cadastrado pelo usuario no Asaas Sandbox, API v3. Recebimento real de
+PAYMENT_CREATED e PAYMENT_RECEIVED comprovado por inbox persistida e processada,
+com zero retentativas nesse smoke. Pix gerado pela API Linux, confirmacao feita
+no Asaas Sandbox, assinatura ativada e repeticao sem duplicar periodo. Tambem
+passaram cancelamento repetido e renovacao anual com callback real.
+
+85 testes unitarios aprovados; 15 cenarios SQL de assinaturas aprovados;
+regressao de lease e pipeline com 150 documentos aprovada em banco local
+exclusivo. Builds API Windows/Linux e spike Delphi aprovados. O EXE Windows
+consultou assinatura, planos e cobranca pela API HTTPS Linux.
+O EXE tambem criou Pix trimestral, gravou PNG valido, retomou a cobranca pelo
+status da assinatura, repetiu a chave sem duplicar e cancelou a cobranca.
+Sandbox instalado na release `2026.09.08-sandbox4`. A API cria billingType
+UNDEFINED e retorna url_pagamento, forma_pagamento, pagamento_aprovado e
+aprovada_em, mantendo QR Pix. Cartao CONFIRMED concede acesso e permanece
+distinto de RECEIVED; a liquidacao posterior nao estende o periodo novamente.
+Recusa/aprovacao de cartao ficticio e estorno do cartao por callback real foram
+comprovados. Teste: `python tests/smoke-assinaturas-cartao-vps.py`.
+
+Pacote Linux final: `D:\Hostinger\artefatos\fisconexa\empacotamento\dist\fisconexa-2026.09.08-assinaturas-rc2.tar.gz`.
+SHA256: `be4fbb66ca3685f70ffa2f3c591bf22d578ab9d3e0505b81e5da212592ca8a8f`.
+Empacotado em D porque G ficou sem espaco. Os diretorios intermediarios rc1 e
+rc2 incompleto foram arquivados em D:\Hostinger\artefatos\fisconexa. Nao usar
+o diretorio rc2 incompleto como release; o pacote valido esta em empacotamento/dist.
+
+Pendente externo: estorno sandbox de `pay_ien12mhyr1r3hys7` aguarda
+AWAITING_CRITICAL_ACTION_AUTHORIZATION no painel Asaas. O teste retomavel e
+`python tests/smoke-assinaturas-estorno-vps.py --retomar`. Nao considerar
+esse estorno Pix concluido ate receber PAYMENT_REFUNDED e conferir o prazo final.
+O estorno de cartao foi concluido e validado separadamente no provedor real sandbox.
+A regra de estorno concluido/parcial e coberta por teste unitario e a remocao
+do periodo por teste SQL. Credenciais reais ainda nao fornecidas.
+
+As migrations de assinatura ainda NAO foram aplicadas em producao. A producao
+segue na rc9 abaixo; os trials dos tenants reais iniciarao no deploy desta
+funcionalidade. Usuario pediu para aguardar os tokens de producao antes do deploy.
+Gate pendente: autorizacao do estorno Pix de teste e configurar/validar o
+Asaas producao antes de habilitar cobrancas reais. Nao apontar token
+sandbox para o banco real. Toda credencial permanece fora do repositorio.
 
 ## Producao
 

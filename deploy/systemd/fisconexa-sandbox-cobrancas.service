@@ -1,0 +1,28 @@
+[Unit]
+Description=FiscoNexa conciliacao Asaas sandbox
+Wants=network-online.target
+After=network-online.target fisconexa-sandbox-api.service
+
+[Service]
+Type=oneshot
+User=fisconexa-sandbox
+Group=fisconexa-sandbox
+WorkingDirectory=/opt/fisconexa-sandbox/current
+EnvironmentFile=/etc/fisconexa-sandbox/app.env
+EnvironmentFile=/etc/fisconexa-sandbox/asaas.env
+Environment=TZ=UTC
+Environment=FISCONEXA_ENVIRONMENT=homologacao
+Environment=LD_LIBRARY_PATH=/opt/fisconexa-sandbox/current/lib
+Environment=OPENSSL_MODULES=/opt/fisconexa-sandbox/current/lib/ossl-modules
+Environment=FISCONEXA_LOG_DIR=/var/log/fisconexa-sandbox
+Environment=FISCONEXA_INSTANCE_ID=%H-sandbox-cobrancas
+ExecStart=/opt/fisconexa-sandbox/current/FiscoNexa.Api --reconciliar-cobrancas
+TimeoutStartSec=15min
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/fisconexa-sandbox
+UMask=0027

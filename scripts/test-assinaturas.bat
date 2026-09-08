@@ -1,0 +1,12 @@
+@echo off
+setlocal EnableExtensions
+set "ROOT=%~dp0.."
+call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
+if errorlevel 1 exit /b 1
+if not exist "%ROOT%\bin\tests\win64" mkdir "%ROOT%\bin\tests\win64"
+if not exist "%ROOT%\build\tests\win64\dcu" mkdir "%ROOT%\build\tests\win64\dcu"
+dcc64 -B -E"%ROOT%\bin\tests\win64" -N0"%ROOT%\build\tests\win64\dcu" -NS"System;Xml;Data;Web;Winapi;Vcl" -U"%ROOT%\src\application";"%ROOT%\src\db";"%ROOT%\src\integrations";"%ROOT%\src\operations";"%ROOT%\src\persistence";"%ROOT%\src\persistence\schema" "%ROOT%\tests\integration\FiscoNexa.AssinaturasIntegration.dpr"
+if errorlevel 1 exit /b 1
+set "PATH=%ROOT%\vendor\postgres-client\pgsql\bin;%PATH%"
+"%ROOT%\bin\tests\win64\FiscoNexa.AssinaturasIntegration.exe"
+exit /b %errorlevel%

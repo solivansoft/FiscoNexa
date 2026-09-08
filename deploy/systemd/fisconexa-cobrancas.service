@@ -1,11 +1,10 @@
 [Unit]
-Description=FiscoNexa API
+Description=FiscoNexa conciliacao de pagamentos Asaas
 Wants=network-online.target
-After=network-online.target
-StartLimitIntervalSec=0
+After=network-online.target fisconexa-api.service
 
 [Service]
-Type=simple
+Type=oneshot
 User=fisconexa
 Group=fisconexa
 WorkingDirectory=/opt/fisconexa/current
@@ -16,18 +15,11 @@ Environment=TZ=UTC
 Environment=LD_LIBRARY_PATH=/opt/fisconexa/current/lib
 Environment=OPENSSL_MODULES=/opt/fisconexa/current/lib/ossl-modules
 Environment=FISCONEXA_LOG_DIR=/var/log/fisconexa
-Environment=FISCONEXA_INSTANCE_ID=%H-api
-ExecStart=/opt/fisconexa/current/FiscoNexa.Api
-Restart=always
-RestartSec=10s
-TimeoutStopSec=30s
+Environment=FISCONEXA_INSTANCE_ID=%H-cobrancas
+ExecStart=/opt/fisconexa/current/FiscoNexa.Api --reconciliar-cobrancas
+TimeoutStartSec=15min
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=fisconexa-api
 NoNewPrivileges=true
 PrivateTmp=true
-# O grupo fisconexa inclui somente o coletor Alloy; permite leitura dos logs.
 UMask=0027
-
-[Install]
-WantedBy=multi-user.target

@@ -112,11 +112,10 @@ begin
   Q := TFDQuery.Create(nil);
   try
     Q.Connection := AConnection;
-    Q.SQL.Text := 'select (situacao=''liberado'' or coalesce(acesso_liberado_ate>now(),false)),'+
-      'coalesce(proteger_monitoramento_ate::text,'''') from licencas '+
+    Q.SQL.Text := 'select entrega_permitida,monitoramento_protegido_ate::text from acessos_assinatura '+
       'where company_id=cast(:id as uuid)';
     Q.ParamByName('id').AsString := ACompanyId; Q.Open;
-    if Q.IsEmpty then Exit(True);
+    if Q.IsEmpty then Exit(False);
     AProtectedUntil := Q.Fields[1].AsString;
     Result := Q.Fields[0].AsBoolean;
   finally Q.Free; end;

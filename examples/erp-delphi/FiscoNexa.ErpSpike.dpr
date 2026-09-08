@@ -8,6 +8,7 @@ uses
   System.JSON,
   System.Net.HttpClient,
   System.Net.URLClient,
+  System.NetEncoding,
   System.SysUtils;
 
 type
@@ -126,11 +127,84 @@ begin
   end;
 end;
 
+procedure Assinaturas(const ACliente: THTTPClient; const AComando: string);
+var
+  Tentativa: Integer;
+  Token, Corpo, Caminho, Destino: string;
+  Stream: TStringStream;
+  Resposta: IHTTPResponse;
+  J: TJSONValue;
+  Pix: TJSONValue;
+begin
+  Token := VariavelObrigatoria('FISCONEXA_ERP_TOKEN');
+  if (AComando = 'assinatura') or (AComando = 'planos') then
+  begin
+    Writeln(GetJson(ACliente, '/v1/' + AComando, Token));
+    Exit;
+  end;
+  ACliente.CustomHeaders['Authorization'] := 'Bearer ' + Token;
+  if AComando = 'cobrar' then
+  begin
+    if ParamCount < 3 then
+      raise EContratoApi.Create('Uso: cobrar PLANO CHAVE_IDEMPOTENCIA [QRCODE.png]');
+    J := TJSONObject.Create.AddPair('plano_codigo', ParamStr(2));
+    try Corpo := J.ToJSON; finally J.Free; end;
+    Stream := TStringStream.Create(Corpo, TEncoding.UTF8);
+    try
+      ACliente.ContentType := 'application/json';
+      ACliente.CustomHeaders['Idempotency-Key'] := ParamStr(3);
+      for Tentativa := 1 to 5 do
+      begin
+        Stream.Position := 0;
+        Resposta := ACliente.Post(UrlBase + '/v1/cobrancas', Stream);
+        if not ((Resposta.StatusCode = 409) or (Resposta.StatusCode = 503)) then Break;
+        if Tentativa < 5 then TThread.Sleep(2000);
+      end;
+    finally Stream.Free; end;
+  end
+  else
+  begin
+    if ParamCount < 2 then
+      raise EContratoApi.Create('Informe o ID da cobranca.');
+    Caminho := UrlBase + '/v1/cobrancas/' + ParamStr(2);
+    for Tentativa := 1 to 5 do
+    begin
+      if AComando = 'cancelar-cobranca' then Resposta := ACliente.Delete(Caminho)
+      else Resposta := ACliente.Get(Caminho);
+      if not ((Resposta.StatusCode = 409) or (Resposta.StatusCode = 503)) then Break;
+      if Tentativa < 5 then TThread.Sleep(2000);
+    end;
+  end;
+  ExigirStatus(Resposta, 200, AComando);
+  Corpo := Resposta.ContentAsString(TEncoding.UTF8);
+  ValidarObjetoJson(Corpo, 'id_cobranca', AComando);
+  Writeln(Corpo);
+  if (AComando = 'cobrar') and (ParamCount >= 4) then
+  begin
+    J := TJSONObject.ParseJSONValue(Corpo);
+    try
+      Pix := TJSONObject(J).GetValue('pix');
+      if Pix is TJSONObject then
+      begin
+        Destino := ParamStr(4);
+        TFile.WriteAllBytes(Destino, TNetEncoding.Base64.DecodeStringToBytes(
+          TJSONObject(Pix).GetValue<string>('imagem_base64')));
+        Writeln('QR Code salvo em ', TPath.GetFullPath(Destino));
+      end;
+    finally J.Free; end;
+  end;
+end;
+
 procedure MostrarUso;
 begin
   Writeln('FiscoNexa.ErpSpike.exe smoke');
   Writeln('FiscoNexa.ErpSpike.exe documentos [nsu] [limite]');
   Writeln('FiscoNexa.ErpSpike.exe xml ID_DOCUMENTO [ARQUIVO.xml]');
+  Writeln('FiscoNexa.ErpSpike.exe assinatura');
+  Writeln('FiscoNexa.ErpSpike.exe planos');
+  Writeln('FiscoNexa.ErpSpike.exe cobrar PLANO CHAVE_IDEMPOTENCIA [QRCODE.png]');
+  Writeln('FiscoNexa.ErpSpike.exe cobranca ID_COBRANCA');
+  Writeln('FiscoNexa.ErpSpike.exe cancelar-cobranca ID_COBRANCA');
 end;
 
 var
@@ -148,6 +222,9 @@ begin
       if Comando = 'smoke' then ExecutarSmoke(Cliente)
       else if Comando = 'documentos' then ListarDocumentos(Cliente)
       else if Comando = 'xml' then BaixarXml(Cliente)
+      else if (Comando = 'assinatura') or (Comando = 'planos') or
+        (Comando = 'cobrar') or (Comando = 'cobranca') or (Comando = 'cancelar-cobranca') then
+        Assinaturas(Cliente, Comando)
       else begin MostrarUso; ExitCode := 2; end;
     finally
       Cliente.Free;

@@ -1,0 +1,11 @@
+[Unit]
+Description=Agenda conciliacao Asaas sandbox
+
+[Timer]
+OnBootSec=60s
+OnUnitInactiveSec=10s
+AccuracySec=1s
+Unit=fisconexa-sandbox-cobrancas.service
+
+[Install]
+WantedBy=timers.target

@@ -7,6 +7,11 @@ uses
   Api.Server in '..\..\src\api\Api.Server.pas';
 
 begin
+  if SameText(ParamStr(1), '--reconciliar-cobrancas') then
+  begin
+    ReconciliarCobrancas;
+    Exit;
+  end;
   if SameText(ParamStr(1), '--user-create') then
   begin
     if ParamCount <> 3 then

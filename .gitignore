@@ -15,3 +15,5 @@ logs/
 *.res
 *.identcache
 *.local
+__pycache__/
+*.pyc

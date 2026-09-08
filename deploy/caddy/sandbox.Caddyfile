@@ -1,0 +1,12 @@
+sandbox.fisconexa.com.br {
+  encode zstd gzip
+  request_body {
+    max_size 128KB
+  }
+  reverse_proxy 127.0.0.1:9001
+  header {
+    -Server
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "strict-origin-when-cross-origin"
+  }
+}

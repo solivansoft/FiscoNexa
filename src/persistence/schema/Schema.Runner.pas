@@ -14,6 +14,7 @@ implementation
 
 uses
   Schema.Definition,
+  Tables.Assinaturas,
   Schema.Postgres,
   Tables.Auditorias,
   Tables.Licencas,
@@ -69,6 +70,13 @@ begin
     ApplyTable(AConnection, DocumentosTable);
     ApplyTable(AConnection, AuditoriasTable);
     ApplyTable(AConnection, LicencasTable);
+    ApplyTable(AConnection, PlanosTable);
+    ApplyTable(AConnection, AssinaturasTable);
+    ApplyTable(AConnection, ClientesCobrancaTable);
+    ApplyTable(AConnection, CobrancasTable);
+    ApplyTable(AConnection, EventosCobrancaTable);
+    ApplyTable(AConnection, WebhooksCobrancaTable);
+    ApplyTable(AConnection, PedidosCobrancaTable);
     AConnection.Commit;
   except
     AConnection.Rollback;

@@ -253,6 +253,9 @@ var
 begin
   Query := NewQuery(FConnection);
   try
+    Query.SQL.Text := 'insert into assinaturas(company_id) values (:company_id) on conflict do nothing';
+    Query.ParamByName('company_id').AsString := ACompanyId;
+    Query.Execute;
     Query.SQL.Text :=
       'insert into configuracoes_monitoramento (company_id) values (:company_id) on conflict do nothing';
     Query.ParamByName('company_id').AsString := ACompanyId;

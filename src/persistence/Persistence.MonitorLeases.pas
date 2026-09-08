@@ -49,10 +49,8 @@ begin
       '  where status.status = ''active'' ' +
       '    and (status.next_check_at is null or status.next_check_at <= now()) ' +
       '    and (status.lease_until is null or status.lease_until <= now()) ' +
-      '    and (not exists (select 1 from licencas license where license.company_id=status.company_id) ' +
-      '      or exists (select 1 from licencas license where license.company_id=status.company_id ' +
-      '        and (license.situacao=''liberado'' or license.acesso_liberado_ate > now() ' +
-      '          or license.proteger_monitoramento_ate > now()))) ' +
+      ' and exists (select 1 from acessos_assinatura acesso where acesso.company_id=status.company_id ' +
+      '   and acesso.monitoramento_permitido) ' +
       '    and exists (select 1 from empresas_modulos module ' +
       '      where module.company_id = status.company_id ' +
       '        and module.code = ''monitoring'' and module.status = ''active'') ' +

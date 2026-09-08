@@ -4,12 +4,16 @@ interface
 
 procedure RunApi;
 procedure BootstrapAdmin(const AEmail, APassword: string);
+procedure ReconciliarCobrancas;
 
 implementation
 
 uses
+  System.SysUtils,
+  Persistence.Assinaturas,
   System.JSON,
   Horse,
+  Api.Routes.Assinaturas,
   Api.Routes.AdminErps,
   Api.Routes.Auth,
   Api.Routes.ErpCompanies,
@@ -24,6 +28,20 @@ uses
   Operations.Authentication,
   Operations.StructuredLogs;
 
+procedure ReconciliarCobrancas;
+var C: TFDConnection; S: TAssinaturasService; Total: Integer;
+begin
+  C:=TDatabaseConnection.OpenFromEnvironment;
+  try
+    S:=TAssinaturasService.Create(C);
+    try
+      Total:=S.Reconciliar;
+      RegistrarLog('info','cobrancas','reconciliacao_concluida',
+        '{"cobrancas_processadas":'+IntToStr(Total)+'}');
+    finally S.Free; end;
+  finally C.Free; end;
+end;
+
 procedure ApplyMigrations;
 var
   Connection: TFDConnection;
@@ -37,7 +55,18 @@ begin
 end;
 
 procedure RunApi;
+var
+  Port: Integer;
+  ConfiguredPort: string;
+  BindAddress: string;
 begin
+  ConfiguredPort := GetEnvironmentVariable('FISCONEXA_HTTP_PORT');
+  Port := 9000;
+  if ConfiguredPort <> '' then
+    if not TryStrToInt(ConfiguredPort, Port) or (Port < 1) or (Port > 65535) then
+      raise EInvalidOpException.Create('FISCONEXA_HTTP_PORT deve estar entre 1 e 65535.');
+  BindAddress := GetEnvironmentVariable('FISCONEXA_HTTP_HOST');
+  if BindAddress = '' then BindAddress := '0.0.0.0';
   ApplyMigrations;
   RegistrarLog('info', 'api', 'api_iniciando');
   THorse.AddOnTelemetry(
@@ -55,6 +84,7 @@ begin
       finally J.Free; end;
     end);
   RegisterHealthRoute;
+  RegisterSubscriptionRoutes;
   RegisterAuthRoutes;
   RegisterAdminErpRoutes;
   RegisterErpCompanyRoutes;
@@ -62,7 +92,7 @@ begin
   RegisterErpDocumentRoutes;
   RegisterErpMonitoringRoutes;
   RegisterLicenseRoutes;
-  THorse.Listen(9000);
+  THorse.Listen(Port, BindAddress);
 end;
 
 procedure BootstrapAdmin(const AEmail, APassword: string);

@@ -32,7 +32,11 @@ worker_timer_ativo=false
 if systemctl is-active --quiet fisconexa-worker.timer; then
   worker_timer_ativo=true
 fi
-systemctl stop fisconexa-worker.timer fisconexa-worker.service fisconexa-api.service 2>/dev/null || true
+cobrancas_timer_ativo=false
+if systemctl is-active --quiet fisconexa-cobrancas.timer; then
+  cobrancas_timer_ativo=true
+fi
+systemctl stop fisconexa-cobrancas.timer fisconexa-cobrancas.service fisconexa-worker.timer fisconexa-worker.service fisconexa-api.service 2>/dev/null || true
 ln -s "$destino" /opt/fisconexa/current.next
 mv -Tf /opt/fisconexa/current.next /opt/fisconexa/current
 install -m 0644 "$destino"/deploy/systemd/* /etc/systemd/system/
@@ -46,12 +50,16 @@ for tentativa in $(seq 1 90); do
 done
 if [[ "$saudavel" != true ]]; then
   systemctl stop fisconexa-api.service
+  systemctl disable --now fisconexa-cobrancas.timer 2>/dev/null || true
   if [[ -n "$anterior" && -d "$anterior" ]]; then
     ln -s "$anterior" /opt/fisconexa/current.next
     mv -Tf /opt/fisconexa/current.next /opt/fisconexa/current
     systemctl start fisconexa-api.service
     if [[ "$worker_timer_ativo" = true ]]; then
       systemctl start fisconexa-worker.timer
+    fi
+    if [[ "$cobrancas_timer_ativo" = true && -f "$anterior/deploy/systemd/fisconexa-cobrancas.service" ]]; then
+      systemctl enable --now fisconexa-cobrancas.timer
     fi
   else
     rm -f /opt/fisconexa/current
@@ -62,5 +70,6 @@ fi
 if [[ "$worker_timer_ativo" = true ]]; then
   systemctl start fisconexa-worker.timer
 fi
+systemctl enable --now fisconexa-cobrancas.timer
 # A ativacao fiscal e separada: validar restauracao antes de iniciar o timer.
 echo 'API instalada. Apos validar a base: systemctl start fisconexa-worker.timer'

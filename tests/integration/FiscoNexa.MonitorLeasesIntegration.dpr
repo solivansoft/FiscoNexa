@@ -99,6 +99,11 @@ begin
     ASecondCompanyId := Query.FieldByName('id').AsString;
 
     Query.Close;
+    Query.SQL.Text := 'insert into assinaturas(company_id) values(cast(:company_id as uuid))';
+    Query.ParamByName('company_id').AsString := AFirstCompanyId;
+    Query.Execute;
+    Query.ParamByName('company_id').AsString := ASecondCompanyId;
+    Query.Execute;
     Query.SQL.Text :=
       'insert into empresas_modulos (company_id, organization_id, code, status) ' +
       'values (:company_id::uuid, :organization_id::uuid, ''monitoring'', ''active'')';
@@ -145,6 +150,10 @@ begin
   Query := TFDQuery.Create(nil);
   try
     Query.Connection := AConnection;
+    Query.SQL.Text := 'delete from assinaturas where company_id::text in (:first_id, :second_id)';
+    Query.ParamByName('first_id').AsString := AFirstCompanyId;
+    Query.ParamByName('second_id').AsString := ASecondCompanyId;
+    Query.Execute;
     Query.SQL.Text := 'delete from empresas where id::text in (:first_id, :second_id)';
     Query.ParamByName('first_id').AsString := AFirstCompanyId;
     Query.ParamByName('second_id').AsString := ASecondCompanyId;
