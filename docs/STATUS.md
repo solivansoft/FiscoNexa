@@ -2,14 +2,25 @@
 
 Atualizado em 2026-09-08 (America/Sao_Paulo).
 
-## Alteracoes locais posteriores ao ultimo deploy
+## Deploy das rotas tecnicas - 2026-09-08
 
 Rotas tecnicas renomeadas para `/admin` e `/auth/login`, `/auth/refresh`,
 `/auth/password` e `/auth/logout`, com contrato, documentacao e testes ajustados.
 Build Windows, 3 testes de contrato, 56 negativas HTTP e 141 verificacoes de
-integracao aprovados. Esta alteracao ainda nao foi instalada nas VPS; a release
-`2026.09.08-docs-privadas-rc1` usa os prefixos anteriores `/administracao` e
-`/autenticacao`. Referencias abaixo aos novos nomes representam o codigo atual.
+integracao aprovados. API e worker compilados para Linux64 via MSBuild e SDK
+Ubuntu 24.04; pacote autocontido preparado no WSL.
+
+Release `2026.09.08-rotas-3a5fe41`, baseada no commit `3a5fe41`, instalada em
+producao e sandbox. SHA256 do pacote:
+`c0e2511c20d1ee7cd3e0d4e9a96bc7ded5abef276002474f741414af24125294`.
+Gates de 56 rejeicoes HTTP passaram nos dois ambientes; repetidos tambem pela
+URL HTTPS de producao. API, Caddy e timers ativos, com ultimo ciclo fiscal e
+conciliador encerrados com sucesso apos o deploy. Sem alteracao de schema.
+
+Documentacao publicada nos dois ambientes: `/docs/`, `/docs/openapi.json` e
+`/docs/interno.html` responderam 200; `/admin/documentacao` sem token respondeu
+401; contrato completo estatico e rota administrativa antiga responderam 404.
+Assets internos usam o novo prefixo. Relatos de releases abaixo sao historicos.
 
 Backlog do portal registrado em `DECISOES_PENDENTES.md`: contas, organizacoes,
 gestao dos proprios ERPs, carteira, certificados, documentos, assinatura do
