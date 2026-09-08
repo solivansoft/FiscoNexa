@@ -1,6 +1,9 @@
 @echo off
 setlocal EnableExtensions
 
+python "%~dp0..\tests\test_api_contract.py"
+if errorlevel 1 exit /b 1
+
 set "PLATFORM=%~1"
 if "%PLATFORM%"=="" set "PLATFORM=win64"
 
@@ -18,6 +21,9 @@ if not exist "%ROOT%\vendor\horse\src\Horse.pas" (
   exit /b 1
 )
 if not exist "%ROOT%\bin\win64" mkdir "%ROOT%\bin\win64"
+if not exist "%ROOT%\bin\win64\docs" mkdir "%ROOT%\bin\win64\docs"
+copy /Y "%ROOT%\docs\openapi-interno.json" "%ROOT%\bin\win64\docs\openapi-interno.json" >nul
+if errorlevel 1 exit /b 1
 if not exist "%ROOT%\build\win64\dcu" mkdir "%ROOT%\build\win64\dcu"
 
 call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"

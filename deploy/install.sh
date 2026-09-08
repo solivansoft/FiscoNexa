@@ -6,6 +6,9 @@ versao=$(cat "$origem/VERSION")
 [[ "$versao" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,60}$ ]] || exit 2
 (cd "$origem" && sha256sum -c SHA256SUMS >/dev/null)
 test -s /etc/fisconexa/fisconexa.env || { echo 'Configure /etc/fisconexa/fisconexa.env primeiro.' >&2; exit 1; }
+command -v python3 >/dev/null
+test -s "$origem/deploy/security/test_api_contract.py"
+test -s "$origem/deploy/security/api-access-policy.json"
 destino="/opt/fisconexa/releases/$versao"
 test ! -e "$destino" || { echo 'Release ja instalada.' >&2; exit 1; }
 id fisconexa >/dev/null 2>&1 || useradd --system --home /opt/fisconexa --shell /usr/sbin/nologin fisconexa
@@ -48,6 +51,13 @@ for tentativa in $(seq 1 90); do
   if curl -fsS http://127.0.0.1:9000/health >/dev/null; then saudavel=true; break; fi
   sleep 1
 done
+if [[ "$saudavel" = true ]]; then
+  if ! python3 "$destino/deploy/security/test_api_contract.py" \
+    --release-policy "$destino/deploy/security/api-access-policy.json" \
+    --url http://127.0.0.1:9000; then
+    saudavel=false
+  fi
+fi
 if [[ "$saudavel" != true ]]; then
   systemctl stop fisconexa-api.service
   systemctl disable --now fisconexa-cobrancas.timer 2>/dev/null || true
@@ -64,7 +74,7 @@ if [[ "$saudavel" != true ]]; then
   else
     rm -f /opt/fisconexa/current
   fi
-  echo 'Nova API falhou. Verifique logs; rollback de binario nao desfaz schema.' >&2
+  echo 'Nova API falhou no health/autenticacao. Verifique logs; rollback de binario nao desfaz schema.' >&2
   exit 1
 fi
 if [[ "$worker_timer_ativo" = true ]]; then

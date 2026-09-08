@@ -12,6 +12,8 @@ Documentacao inicial:
 - [Pesquisa de mercado e oportunidades](docs/PESQUISA_MERCADO.md)
 - [Arquitetura](docs/ARQUITETURA.md)
 - [Arquitetura da API](docs/ARQUITETURA_API.md)
+- [Portal interativo da API](https://api.fisconexa.com.br/docs)
+- [Manutencao do portal e testes de autenticacao](docs/PORTAL_API.md)
 - [Contrato HTTP de integracao](docs/CONTRATO_API.md)
 - [Status](docs/STATUS.md)
 - [Decisoes pendentes](docs/DECISOES_PENDENTES.md)

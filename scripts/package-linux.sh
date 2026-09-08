@@ -16,6 +16,11 @@ cp -r bin/linux64/Schemas "$destino/"
 mkdir -p "$destino/deploy"
 cp deploy/*.sh deploy/*.example deploy/README.md "$destino/deploy/"
 cp -r deploy/systemd "$destino/deploy/"
+mkdir -p "$destino/deploy/security" "$destino/docs"
+cp tests/test_api_contract.py tests/api-access-policy.json "$destino/deploy/security/"
+cp -r docs/api "$destino/docs/"
+cp docs/openapi-interno.json "$destino/docs/"
+cp -r deploy/caddy "$destino/deploy/"
 printf '%s\n' "$versao" > "$destino/VERSION"
 for lib in libpq.so libssl.so libcrypto.so libxml2.so libxmlsec1.so libxmlsec1-openssl.so libxslt.so libexslt.so libz.so; do
   origem=$(readlink -f "/usr/lib/x86_64-linux-gnu/$lib")

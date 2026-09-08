@@ -1,0 +1,14 @@
+@documentacao path /docs /docs/*
+handle @documentacao {
+  @metodo_invalido not method GET HEAD
+  respond @metodo_invalido 405
+  root * /var/www/fisconexa-api-docs/current
+  uri strip_prefix /docs
+  file_server
+  header {
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "no-referrer"
+    Cache-Control "no-cache"
+    Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+  }
+}

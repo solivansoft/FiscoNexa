@@ -64,6 +64,65 @@
 - Entrevistar contadores sobre monofásicos, ICMS antecipado e preparação para
   IBS/CBS antes de automatizar as regras.
 
+## Proxima frente futura: carteira e painel do contador
+
+Registrada em 2026-09-08 por solicitacao do usuario. Escopo futuro, ainda nao
+implementado; inclui assinatura do escritorio e painel web do contador.
+
+### Cadastro simplificado aprovado
+
+- Problema/evidencia: o usuario atende empresas com pouca familiaridade com
+  computadores; exigir portal ou aprovacao pelo ERP dificulta a adesao.
+- O contador faz todo o cadastro: envia certificado A1 e senha; a API valida o
+  certificado, identifica o CNPJ e busca os dados cadastrais.
+- O contador declara: "Tenho autorizacao desta empresa para consultar seus
+  documentos fiscais." Registrar ator, empresa, data e versao do aceite, sem
+  expor certificado ou senha nos logs.
+- Com validacao e aceite, ativar o vinculo conforme a assinatura do escritorio
+  e iniciar o monitoramento respeitando as janelas da SEFAZ.
+- O cliente nao precisa entrar em portal nem aprovar pelo ERP. Apenas informar
+  um CNPJ nao concede acesso; posse do certificado nao substitui a autorizacao
+  declarada pelo contador.
+
+### Invariantes de acesso e cobranca
+
+- Reutilizar empresa, acervo, NSU e monitoramento existentes por CNPJ; criar o
+  vinculo do escritorio sem duplicar captura ou reiniciar o monitoramento.
+- Vinculo nao transfere propriedade da conta nem remove acesso do ERP.
+- Separar acesso aos XMLs de permissoes de manifestacao fiscal; nao confirmar
+  operacoes automaticamente por necessidade contabil.
+- Permitir revogar o vinculo sem apagar documentos ou historico da empresa.
+- Assinatura do escritorio distinta da assinatura direta do tenant. Definir
+  franquia de CNPJs ativos e precos; pacote de 1.000 CNPJs e ilimitado sao ideias
+  em avaliacao, sem compromisso de oferta ou preco definido.
+- Resolver antes da implementacao quem custeia o monitoramento compartilhado e
+  como contratos do ERP e do escritorio convivem, inclusive inadimplencia e
+  revogacao, sem bloquear acesso coberto por outro contrato vigente.
+
+### Painel e evolucao
+
+- Painel web com login do contador e carteira de empresas; adicionar/vincular
+  empresas, consultar situacao do monitoramento e gerenciar certificados.
+- Indicadores de empresas ativas/inativas, certificados vencidos ou proximos do
+  vencimento, ultima consulta, documentos monitorados e XMLs disponiveis/pendentes.
+- Consultar documentos por empresa e periodo; baixar XML individual e lote/ZIP
+  mensal, mostrando pendencias de documentos ainda indisponiveis.
+- Exibir assinatura do escritorio, uso da franquia, cobrancas e avisos.
+- Evolucao posterior: ERP enviar XMLs de vendas e eventos associados, reunindo
+  compras e vendas para o fechamento contabil.
+
+### Previsao, riscos e gate
+
+- Previsao: contador consegue cadastrar e acompanhar a empresa sem intervencao
+  operacional do cliente, preservando isolamento e monitoramento existente.
+- Riscos a resolver: vinculo indevido, conflito entre contratos e escritorios,
+  tratamento seguro de certificados e custo de carteiras grandes.
+- Gate antes de liberar: provar cadastro com certificado valido e aceite;
+  rejeicao de certificado invalido e CNPJ divergente; ausencia de acesso somente
+  por CNPJ; isolamento entre escritorios; revogacao efetiva; vinculo repetido
+  idempotente; preservacao de NSUs, acervo e acesso ERP; coexistencia de contratos
+  pagos/inadimplentes sem duplicar monitoramento ou cobranca indevida.
+
 ## Inteligência fiscal
 
 - Definir fontes oficiais, versionamento e vigência das regras tributárias.

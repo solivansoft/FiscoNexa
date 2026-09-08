@@ -1,0 +1,117 @@
+{
+  "GET /health": {
+    "security": null,
+    "body": null
+  },
+  "POST /autenticacao/entrar": {
+    "security": null,
+    "body": {
+      "email": "integrador@example.com",
+      "senha": "exemplo-nao-utilizar"
+    }
+  },
+  "POST /autenticacao/renovar": {
+    "security": null,
+    "body": {
+      "token_renovacao": "exemplo-invalido"
+    }
+  },
+  "PUT /autenticacao/senha": {
+    "security": "Sessao",
+    "body": {
+      "senha_atual": "exemplo-atual",
+      "nova_senha": "exemplo-nova"
+    }
+  },
+  "POST /autenticacao/sair": {
+    "security": "Sessao",
+    "body": null
+  },
+  "POST /administracao/erps": {
+    "security": "Superadmin",
+    "body": {
+      "razao_social": "ERP Exemplo",
+      "rotulo_chave": "Integracao"
+    }
+  },
+  "POST /administracao/erps/{id_erp}/chaves": {
+    "security": "Superadmin",
+    "body": {
+      "rotulo_chave": "Nova integracao"
+    }
+  },
+  "DELETE /administracao/erps/{id_erp}/chaves/{id_chave}": {
+    "security": "Superadmin",
+    "body": null
+  },
+  "POST /v1/empresas": {
+    "security": "ChaveERP",
+    "body": {
+      "uf": "PA",
+      "certificado_a1_base64": "ZXhlbXBsby1uYW8tZS1jZXJ0aWZpY2Fkbw==",
+      "senha_certificado_base64": "ZXhlbXBsby1zZW5oYQ=="
+    }
+  },
+  "PUT /v1/empresas/{id_empresa}/modulos/monitoramento": {
+    "security": "ChaveERP",
+    "body": {
+      "situacao": "suspenso"
+    }
+  },
+  "GET /v1/monitoramento": {
+    "security": "TokenTenant",
+    "body": null
+  },
+  "GET /v1/documentos": {
+    "security": "TokenTenant",
+    "body": null
+  },
+  "GET /v1/documentos/{id_documento}/xml": {
+    "security": "TokenTenant",
+    "body": null
+  },
+  "GET /v1/assinatura": {
+    "security": "TokenTenant",
+    "body": null
+  },
+  "GET /v1/planos": {
+    "security": "TokenTenant",
+    "body": null
+  },
+  "POST /v1/cobrancas": {
+    "security": "TokenTenant",
+    "body": {
+      "plano_codigo": "mensal"
+    }
+  },
+  "GET /v1/cobrancas/{id_cobranca}": {
+    "security": "TokenTenant",
+    "body": null
+  },
+  "DELETE /v1/cobrancas/{id_cobranca}": {
+    "security": "TokenTenant",
+    "body": null
+  },
+  "PUT /administracao/licencas/empresas/{id_empresa}": {
+    "security": "Licencas",
+    "body": {
+      "situacao": "restrito",
+      "versao": 1,
+      "referencia": "exemplo-integracao"
+    }
+  },
+  "POST /webhooks/asaas": {
+    "security": "WebhookAsaas",
+    "body": {
+      "id": "evt_exemplo",
+      "event": "PAYMENT_RECEIVED",
+      "payment": {
+        "id": "pay_exemplo"
+      }
+    }
+  },
+  "GET /administracao/documentacao": {
+    "security": "Superadmin",
+    "body": null
+  }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>FiscoNexa · Acesso interno</title>
+  <link rel="stylesheet" href="/docs/portal.css">
+</head>
+<body>
+  <header class="portal-header"><span class="brand">Fisco<span>Nexa</span><small>ACESSO INTERNO</small></span><button id="encerrar" hidden>Encerrar visualização</button></header>
+  <form id="acesso" class="loading">
+    <h1>Documentação interna</h1>
+    <p>Informe seu token de sessão de superadmin.</p>
+    <label for="token">Token de acesso</label>
+    <input id="token" type="password" autocomplete="off" required>
+    <button type="submit">Acessar</button>
+    <p id="mensagem" role="status"></p>
+  </form>
+  <div id="api-reference"></div>
+  <script src="/docs/scalar.js"></script>
+  <script src="/docs/interno.js"></script>
+</body>
+</html>

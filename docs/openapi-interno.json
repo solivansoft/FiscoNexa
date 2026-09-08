@@ -1,0 +1,2064 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "FiscoNexa · Integração ERP",
+    "version": "1.0.0",
+    "description": "## Integre sua aplicação\n\nA API FiscoNexa permite cadastrar empresas, acompanhar o monitoramento de documentos fiscais e obter XMLs.\n\n1. Utilize a chave de integração fornecida pela FiscoNexa para cadastrar a empresa em **POST /v1/empresas**. Mantenha essa chave no backend da integração.\n2. Envie o certificado A1 e sua senha em Base64, por HTTPS. Guarde uma **Idempotency-Key** por operação e reutilize-a em caso de timeout.\n3. Armazene o **token_integracao** retornado de forma protegida e associado à empresa. Ele é retornado apenas no primeiro cadastro.\n4. Consulte **GET /v1/documentos?nsu=0&limite=100**. Após processar a página, persista **ultimo_nsu** para continuar a sincronização.\n5. Obtenha o XML em **GET /v1/documentos/{id_documento}/xml**. HTTP 200 entrega o arquivo; 202 informa processamento pendente. Respeite os estados retornados e use intervalos progressivos entre novas tentativas.\n\n## Acesso ao serviço FiscoNexa\n\nA assinatura pertence ao serviço FiscoNexa e é contratada pela empresa usuária (tenant). O pagamento é destinado à FiscoNexa. A aplicação integradora apenas apresenta as informações e opções retornadas pela API.\n\nConsulte **GET /v1/assinatura** para obter permissões de acesso e avisos. Consulte **GET /v1/planos** para apresentar as opções disponíveis. Ao solicitar uma cobrança, envie somente **plano_codigo** e o cabeçalho **Idempotency-Key**: os valores são definidos e calculados pela FiscoNexa. A aplicação integradora não informa valores, descontos ou dados do recebedor.\n\nUse **url_pagamento** para abrir a página de pagamento da assinatura FiscoNexa. Quando houver o objeto **pix**, ele oferece uma alternativa para pagar essa mesma assinatura. Consulte a cobrança no intervalo indicado em **consultar_novamente_em_segundos**. Considere o pagamento aprovado somente quando **pagamento_aprovado=true** e atualize o acesso com a assinatura retornada.\n\n## Autenticação\n\nEnvie **Authorization: Bearer <token>** com a credencial indicada na operação. A chave de integração cadastra empresas; o token da empresa acessa os recursos daquele tenant. Não compartilhe tokens entre empresas nem os inclua em URLs.\n\n## Respostas e ambientes\n\nJSON UTF-8, campos em português e identificadores UUID. Datas seguem ISO 8601, conforme o schema. Leia o status HTTP mesmo quando o corpo estiver vazio: 401 indica credencial inválida; 403, permissão insuficiente; 402, acesso ao serviço restrito; 404, recurso indisponível para a empresa; 409, conflito; 422, entrada inválida; 503, indisponibilidade temporária.\n\nOs testes interativos executam chamadas no ambiente atual. Produção e homologação possuem dados e credenciais separados. Utilize somente dados de teste em homologação.\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.fisconexa.com.br",
+      "description": "Produção"
+    },
+    {
+      "url": "https://sandbox.fisconexa.com.br",
+      "description": "Homologação"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Empresas",
+      "description": "Cadastro de empresas pelo certificado A1."
+    },
+    {
+      "name": "Documentos",
+      "description": "Sincronização e entrega de XML."
+    },
+    {
+      "name": "Monitoramento",
+      "description": "Estado e proximas janelas fiscais."
+    },
+    {
+      "name": "Assinaturas",
+      "description": "Acesso da empresa ao serviço FiscoNexa."
+    },
+    {
+      "name": "Cobranças",
+      "description": "Pagamento da assinatura FiscoNexa pela empresa usuária."
+    },
+    {
+      "name": "Autenticação",
+      "description": "Sessões humanas; o ERP usa seu token de integração."
+    },
+    {
+      "name": "Administração",
+      "description": "Uso exclusivo da plataforma e sistemas autorizados."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Recebimento exclusivo do provedor Asaas."
+    },
+    {
+      "name": "Infraestrutura",
+      "description": "Disponibilidade da API."
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Infraestrutura"
+        ],
+        "summary": "Verificar disponibilidade",
+        "description": "Verificar disponibilidade",
+        "operationId": "get_health",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API disponível.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "situacao": {
+                      "type": "string",
+                      "enum": [
+                        "disponivel"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "situacao"
+                  ]
+                },
+                "example": {
+                  "situacao": "disponivel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/autenticacao/entrar": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Iniciar sessão",
+        "description": "Iniciar sessão",
+        "operationId": "post_autenticacao_entrar",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Sessão criada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sessao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "senha": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                },
+                "required": [
+                  "email",
+                  "senha"
+                ]
+              },
+              "example": {
+                "email": "integrador@example.com",
+                "senha": "exemplo-nao-utilizar"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/autenticacao/renovar": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Renovar sessão",
+        "description": "Autenticada pelo token de renovação no corpo; não exige Bearer.",
+        "operationId": "post_autenticacao_renovar",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Sessão renovada; token anterior revogado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sessao"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token_renovacao": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token_renovacao"
+                ]
+              },
+              "example": {
+                "token_renovacao": "exemplo-invalido"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/autenticacao/senha": {
+      "put": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Alterar senha",
+        "description": "Alterar senha",
+        "operationId": "put_autenticacao_senha",
+        "security": [
+          {
+            "Sessao": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Senha alterada; sessões revogadas."
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "senha_atual": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "nova_senha": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                },
+                "required": [
+                  "senha_atual",
+                  "nova_senha"
+                ]
+              },
+              "example": {
+                "senha_atual": "exemplo-atual",
+                "nova_senha": "exemplo-nova"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/autenticacao/sair": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Encerrar sessão",
+        "description": "Encerrar sessão",
+        "operationId": "post_autenticacao_sair",
+        "security": [
+          {
+            "Sessao": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sessão revogada."
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          }
+        }
+      }
+    },
+    "/administracao/erps": {
+      "post": {
+        "tags": [
+          "Administração"
+        ],
+        "summary": "Cadastrar ERP",
+        "description": "Cadastrar ERP",
+        "operationId": "post_administracao_erps",
+        "security": [
+          {
+            "Superadmin": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "ERP e chave criados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id_erp": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "id_chave": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "chave_erp": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id_erp",
+                    "id_chave",
+                    "chave_erp"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "razao_social": {
+                    "type": "string"
+                  },
+                  "rotulo_chave": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "razao_social",
+                  "rotulo_chave"
+                ]
+              },
+              "example": {
+                "razao_social": "ERP Exemplo",
+                "rotulo_chave": "Integracao"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/administracao/erps/{id_erp}/chaves": {
+      "post": {
+        "tags": [
+          "Administração"
+        ],
+        "summary": "Rotacionar chave ERP",
+        "description": "Rotacionar chave ERP",
+        "operationId": "post_administracao_erps_id_erp_chaves",
+        "security": [
+          {
+            "Superadmin": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Nova chave emitida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id_erp": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "id_chave": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "chave_erp": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id_erp",
+                    "id_chave",
+                    "chave_erp"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          }
+        },
+        "parameters": [
+          {
+            "name": "id_erp",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rotulo_chave": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "rotulo_chave"
+                ]
+              },
+              "example": {
+                "rotulo_chave": "Nova integracao"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/administracao/erps/{id_erp}/chaves/{id_chave}": {
+      "delete": {
+        "tags": [
+          "Administração"
+        ],
+        "summary": "Revogar chave ERP",
+        "description": "Revogar chave ERP",
+        "operationId": "delete_administracao_erps_id_erp_chaves_id_chave",
+        "security": [
+          {
+            "Superadmin": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Chave revogada."
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          }
+        },
+        "parameters": [
+          {
+            "name": "id_erp",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id_chave",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/empresas": {
+      "post": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Cadastrar e ativar empresa",
+        "description": "Requer a chave de integração com escopo companies:onboard. A API identifica o CNPJ pelo certificado e complementa os dados cadastrais. Informe uf se a API retornar uf_obrigatoria. Guarde token_integracao no primeiro cadastro.",
+        "operationId": "post_v1_empresas",
+        "security": [
+          {
+            "ChaveERP": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Empresa ativada; guarde token_integracao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Empresa"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Cadastro repetido; sem reemitir token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Empresa"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 120
+            },
+            "description": "Chave persistida por operação. Reutilize após timeout.",
+            "example": "erp-operacao-00000001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uf": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "certificado_a1_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "senha_certificado_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  }
+                },
+                "required": [
+                  "certificado_a1_base64",
+                  "senha_certificado_base64"
+                ]
+              },
+              "example": {
+                "uf": "PA",
+                "certificado_a1_base64": "ZXhlbXBsby1uYW8tZS1jZXJ0aWZpY2Fkbw==",
+                "senha_certificado_base64": "ZXhlbXBsby1zZW5oYQ=="
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/empresas/{id_empresa}/modulos/monitoramento": {
+      "put": {
+        "tags": [
+          "Monitoramento"
+        ],
+        "summary": "Alterar situação do modulo",
+        "description": "Requer modules:write e empresa vinculada ao ERP da chave.",
+        "operationId": "put_v1_empresas_id_empresa_modulos_monitoramento",
+        "security": [
+          {
+            "ChaveERP": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Modulo atualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "situacao": {
+                      "type": "string",
+                      "enum": [
+                        "atualizada"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "situacao"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          }
+        },
+        "parameters": [
+          {
+            "name": "id_empresa",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "situacao": {
+                    "type": "string",
+                    "enum": [
+                      "ativo",
+                      "suspenso",
+                      "cancelado"
+                    ]
+                  }
+                },
+                "required": [
+                  "situacao"
+                ]
+              },
+              "example": {
+                "situacao": "suspenso"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/monitoramento": {
+      "get": {
+        "tags": [
+          "Monitoramento"
+        ],
+        "summary": "Consultar monitoramento",
+        "description": "Consultar monitoramento",
+        "operationId": "get_v1_monitoramento",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado persistido do worker.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Monitoramento"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          }
+        }
+      }
+    },
+    "/v1/documentos": {
+      "get": {
+        "tags": [
+          "Documentos"
+        ],
+        "summary": "Sincronizar documentos",
+        "description": "Persista ultimo_nsu após processar toda a página. O valor_total e texto decimal em reais. Consulta não dispara monitoramento SEFAZ.",
+        "operationId": "get_v1_documentos",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de documentos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Documentos"
+                },
+                "example": {
+                  "itens": [],
+                  "ultimo_nsu": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros inválidos."
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "402": {
+            "description": "Licenca ou assinatura restrita."
+          },
+          "403": {
+            "description": "Sem permissão."
+          }
+        },
+        "parameters": [
+          {
+            "name": "nsu",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "format": "int64"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        ]
+      }
+    },
+    "/v1/documentos/{id_documento}/xml": {
+      "get": {
+        "tags": [
+          "Documentos"
+        ],
+        "summary": "Baixar ou solicitar XML",
+        "description": "200 entrega o XML. 202 informa processamento pendente; aguarde antes de consultar novamente. 409 informa uma restrição fiscal conhecida, detalhada em motivo e ciencia_cstat.",
+        "operationId": "get_v1_documentos_id_documento_xml",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conteúdo XML.",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Aguardando processamento.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "situacao": {
+                      "type": "string",
+                      "enum": [
+                        "pendente"
+                      ]
+                    },
+                    "id_comando": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "situacao",
+                    "id_comando"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Indisponibilidade fiscal conhecida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "situacao": {
+                      "type": "string",
+                      "enum": [
+                        "indisponivel"
+                      ]
+                    },
+                    "motivo": {
+                      "type": "string",
+                      "enum": [
+                        "prazo_ciencia_encerrado",
+                        "manifestacao_final_existente",
+                        "ciencia_recusada"
+                      ]
+                    },
+                    "ciencia_cstat": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "situacao",
+                    "motivo",
+                    "ciencia_cstat"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "402": {
+            "description": "Licenca ou assinatura restrita."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          }
+        },
+        "parameters": [
+          {
+            "name": "id_documento",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/assinatura": {
+      "get": {
+        "tags": [
+          "Assinaturas"
+        ],
+        "summary": "Consultar acesso ao serviço FiscoNexa",
+        "description": "Consultar acesso e avisos",
+        "operationId": "get_v1_assinatura",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assinatura da empresa.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assinatura"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          },
+          "500": {
+            "description": "Falha interna."
+          }
+        }
+      }
+    },
+    "/v1/planos": {
+      "get": {
+        "tags": [
+          "Assinaturas"
+        ],
+        "summary": "Consultar planos e preços",
+        "description": "Consulte os planos vigentes da FiscoNexa. Os valores retornados são calculados pelo serviço; a integradora não informa valores ao criar uma cobrança.",
+        "operationId": "get_v1_planos",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preços atuais calculados no servidor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Planos"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "500": {
+            "description": "Falha interna."
+          }
+        }
+      }
+    },
+    "/v1/cobrancas": {
+      "post": {
+        "tags": [
+          "Cobranças"
+        ],
+        "summary": "Criar ou retomar cobrança",
+        "description": "Pagamento da assinatura FiscoNexa. O valor e o recebedor são definidos pela FiscoNexa. A integradora envia o plano escolhido e apresenta a página de pagamento ou, quando disponível, o QR Pix retornado. Reutilize a mesma Idempotency-Key após timeout. Cancelar cobrança não estorna pagamentos já aprovados.",
+        "operationId": "post_v1_cobrancas",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cobrança e assinatura atualizadas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cobranca"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          },
+          "409": {
+            "description": "Conflito; consulte a situação atual."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          },
+          "503": {
+            "description": "Provedor temporariamente indisponível."
+          },
+          "500": {
+            "description": "Falha interna."
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 120
+            },
+            "description": "Chave persistida por operação. Reutilize após timeout.",
+            "example": "erp-operacao-00000001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plano_codigo": {
+                    "type": "string",
+                    "enum": [
+                      "mensal",
+                      "trimestral",
+                      "anual"
+                    ]
+                  }
+                },
+                "required": [
+                  "plano_codigo"
+                ]
+              },
+              "example": {
+                "plano_codigo": "mensal"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cobrancas/{id_cobranca}": {
+      "get": {
+        "tags": [
+          "Cobranças"
+        ],
+        "summary": "Consultar pagamento",
+        "description": "Pagamento da assinatura FiscoNexa. O valor e o recebedor são definidos pela FiscoNexa. A integradora envia o plano escolhido e apresenta a página de pagamento ou, quando disponível, o QR Pix retornado. Reutilize a mesma Idempotency-Key após timeout. Cancelar cobrança não estorna pagamentos já aprovados.",
+        "operationId": "get_v1_cobrancas_id_cobranca",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cobrança e assinatura atualizadas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cobranca"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          },
+          "409": {
+            "description": "Conflito; consulte a situação atual."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          },
+          "503": {
+            "description": "Provedor temporariamente indisponível."
+          },
+          "500": {
+            "description": "Falha interna."
+          }
+        },
+        "parameters": [
+          {
+            "name": "id_cobranca",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Cobranças"
+        ],
+        "summary": "Cancelar cobrança aberta",
+        "description": "Pagamento da assinatura FiscoNexa. O valor e o recebedor são definidos pela FiscoNexa. A integradora envia o plano escolhido e apresenta a página de pagamento ou, quando disponível, o QR Pix retornado. Reutilize a mesma Idempotency-Key após timeout. Cancelar cobrança não estorna pagamentos já aprovados.",
+        "operationId": "delete_v1_cobrancas_id_cobranca",
+        "security": [
+          {
+            "TokenTenant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cobrança e assinatura atualizadas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cobranca"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "403": {
+            "description": "Sem permissão."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          },
+          "409": {
+            "description": "Conflito; consulte a situação atual."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          },
+          "503": {
+            "description": "Provedor temporariamente indisponível."
+          },
+          "500": {
+            "description": "Falha interna."
+          }
+        },
+        "parameters": [
+          {
+            "name": "id_cobranca",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/administracao/licencas/empresas/{id_empresa}": {
+      "put": {
+        "tags": [
+          "Administração"
+        ],
+        "summary": "Atualizar licenca do parceiro",
+        "description": "Uso exclusivo do backend de licencas. Versao monotona por empresa; repeticoes não estendem prazo. Não utilizar chave do tenant.",
+        "operationId": "put_administracao_licencas_empresas_id_empresa",
+        "security": [
+          {
+            "Licencas": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Licenca atualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "situacao": {
+                      "type": "string"
+                    },
+                    "repetido": {
+                      "type": "boolean"
+                    },
+                    "versao": {
+                      "type": "integer"
+                    },
+                    "acesso_liberado_ate": {
+                      "type": "string"
+                    },
+                    "proteger_monitoramento_ate": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "situacao",
+                    "repetido",
+                    "versao"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "404": {
+            "description": "Recurso não encontrado ou fora do tenant."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          }
+        },
+        "parameters": [
+          {
+            "name": "id_empresa",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "situacao": {
+                    "type": "string",
+                    "enum": [
+                      "liberado",
+                      "restrito"
+                    ]
+                  },
+                  "versao": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "referencia": {
+                    "type": "string"
+                  },
+                  "acesso_liberado_ate": {
+                    "type": "string",
+                    "description": "Data com fuso explicito."
+                  },
+                  "proteger_monitoramento_ate": {
+                    "type": "string",
+                    "description": "Data com fuso explicito."
+                  }
+                },
+                "required": [
+                  "situacao",
+                  "versao",
+                  "referencia"
+                ]
+              },
+              "example": {
+                "situacao": "restrito",
+                "versao": 1,
+                "referencia": "exemplo-integracao"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/asaas": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Receber evento Asaas",
+        "description": "Segredo asaas-access-token obrigatorio. Grava inbox idempotente e retorna rapidamente. Conciliador verifica pagamento diretamente no Asaas antes de conceder acesso. Não chamar pelo ERP.",
+        "operationId": "post_webhooks_asaas",
+        "security": [
+          {
+            "WebhookAsaas": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evento recebido para conciliacao.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recebido": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "recebido"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial ausente ou inválida; corpo pode ser vazio."
+          },
+          "422": {
+            "description": "Dados inválidos."
+          },
+          "500": {
+            "description": "Falha interna."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "event": {
+                    "type": "string"
+                  },
+                  "payment": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "event",
+                  "payment"
+                ]
+              },
+              "example": {
+                "id": "evt_exemplo",
+                "event": "PAYMENT_RECEIVED",
+                "payment": {
+                  "id": "pay_exemplo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/administracao/documentacao": {
+      "get": {
+        "tags": [
+          "Administração"
+        ],
+        "summary": "Consultar contrato interno",
+        "description": "Exclusivo para sessão de superadmin. Token no cabeçalho Authorization; parâmetros de URL não concedem acesso.",
+        "operationId": "get_administracao_documentacao",
+        "security": [
+          {
+            "Superadmin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato OpenAPI completo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão ausente, inválida ou expirada."
+          },
+          "403": {
+            "description": "Superadmin obrigatório."
+          },
+          "503": {
+            "description": "Documentação indisponível."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "TokenTenant": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Token de integração da empresa; escopo documents:read."
+      },
+      "ChaveERP": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Chave bootstrap ERP com escopo da operação."
+      },
+      "Sessao": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Token de acesso de sessão humana."
+      },
+      "Superadmin": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Sessão humana com papel superadmin."
+      },
+      "Licencas": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Chave exclusiva do sistema de licencas."
+      },
+      "WebhookAsaas": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "asaas-access-token",
+        "description": "Segredo do webhook; exclusivamente servidor/provedor."
+      }
+    },
+    "schemas": {
+      "Erro": {
+        "type": "object",
+        "properties": {
+          "erro": {
+            "type": "object",
+            "properties": {
+              "codigo": {
+                "type": "string"
+              },
+              "mensagem": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "codigo"
+            ]
+          }
+        },
+        "required": [
+          "erro"
+        ]
+      },
+      "Sessao": {
+        "type": "object",
+        "properties": {
+          "token_acesso": {
+            "type": "string"
+          },
+          "token_renovacao": {
+            "type": "string"
+          },
+          "tipo_token": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expira_em": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "token_acesso",
+          "token_renovacao",
+          "tipo_token",
+          "expira_em"
+        ]
+      },
+      "Empresa": {
+        "type": "object",
+        "properties": {
+          "id_empresa": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id_integracao": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "repetido": {
+            "type": "boolean"
+          },
+          "uf": {
+            "type": "string"
+          },
+          "razao_social": {
+            "type": "string"
+          },
+          "nome_fantasia": {
+            "type": "string"
+          },
+          "cadastro_disponivel": {
+            "type": "boolean"
+          },
+          "dados_cadastrais": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "token_integracao": {
+            "type": "string",
+            "description": "Retornado somente na primeira criação; guardar de forma protegida por empresa."
+          }
+        },
+        "required": [
+          "id_empresa",
+          "id_integracao",
+          "repetido",
+          "uf",
+          "razao_social",
+          "nome_fantasia",
+          "cadastro_disponivel"
+        ]
+      },
+      "Documento": {
+        "type": "object",
+        "properties": {
+          "nsu": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id_documento": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "chave_acesso": {
+            "type": "string",
+            "pattern": "^[0-9]{44}$"
+          },
+          "tipo_documento": {
+            "type": "string",
+            "example": "NFe"
+          },
+          "modelo": {
+            "type": "string",
+            "example": "55"
+          },
+          "serie": {
+            "type": "string",
+            "example": "001"
+          },
+          "numero": {
+            "type": "string",
+            "example": "000000123"
+          },
+          "emitido_em": {
+            "type": "string",
+            "description": "Data de emissão; pode estar vazia quando indisponível."
+          },
+          "cnpj_emitente": {
+            "type": "string"
+          },
+          "nome_emitente": {
+            "type": "string"
+          },
+          "tipo_operacao": {
+            "type": "string",
+            "enum": [
+              "entrada",
+              "saida",
+              ""
+            ],
+            "description": "Texto vazio quando a informação ainda não estiver disponível."
+          },
+          "situacao_fiscal": {
+            "type": "string",
+            "enum": [
+              "autorizada",
+              "cancelada",
+              "denegada",
+              "encerrada",
+              ""
+            ],
+            "description": "Texto vazio quando a informação ainda não estiver disponível."
+          },
+          "valor_total": {
+            "type": "string",
+            "description": "Decimal em reais serializado como texto.",
+            "example": "1234.56"
+          },
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "localizado",
+              "ciencia_registrada",
+              "manifestado",
+              "xml_disponivel",
+              "cancelado",
+              "desconhecida"
+            ]
+          },
+          "ciencia_cstat": {
+            "type": "integer"
+          },
+          "xml_disponivel": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "nsu",
+          "id_documento",
+          "chave_acesso",
+          "tipo_documento",
+          "modelo",
+          "serie",
+          "numero",
+          "emitido_em",
+          "cnpj_emitente",
+          "nome_emitente",
+          "tipo_operacao",
+          "situacao_fiscal",
+          "valor_total",
+          "situacao",
+          "xml_disponivel"
+        ]
+      },
+      "Documentos": {
+        "type": "object",
+        "properties": {
+          "itens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Documento"
+            }
+          },
+          "ultimo_nsu": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "itens",
+          "ultimo_nsu"
+        ]
+      },
+      "Monitoramento": {
+        "type": "object",
+        "properties": {
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "ativo",
+              "suspenso",
+              "cancelado"
+            ]
+          },
+          "intervalo_minutos": {
+            "type": "integer"
+          },
+          "consultado_em": {
+            "type": "string",
+            "description": "Data UTC ou texto vazio se ainda não consultado."
+          },
+          "proxima_consulta_em": {
+            "type": "string",
+            "description": "Proxima janela persistida; não antecipar consultas SEFAZ pelo ERP."
+          },
+          "ultimo_cstat": {
+            "type": "integer"
+          },
+          "situacao_certificado": {
+            "type": "string",
+            "enum": [
+              "valido",
+              "a_vencer",
+              "vencido"
+            ]
+          },
+          "certificado_valido_ate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "situacao",
+          "intervalo_minutos",
+          "consultado_em",
+          "proxima_consulta_em",
+          "ultimo_cstat",
+          "situacao_certificado",
+          "certificado_valido_ate"
+        ]
+      },
+      "Plano": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "enum": [
+              "mensal",
+              "trimestral",
+              "anual"
+            ]
+          },
+          "nome": {
+            "type": "string"
+          },
+          "meses": {
+            "type": "integer"
+          },
+          "valor_centavos": {
+            "type": "integer"
+          },
+          "valor_referencia_centavos": {
+            "type": "integer"
+          },
+          "economia_centavos": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "codigo",
+          "nome",
+          "meses",
+          "valor_centavos",
+          "valor_referencia_centavos",
+          "economia_centavos"
+        ]
+      },
+      "Planos": {
+        "type": "object",
+        "properties": {
+          "moeda": {
+            "type": "string",
+            "enum": [
+              "BRL"
+            ]
+          },
+          "por_tenant": {
+            "type": "boolean"
+          },
+          "limite_documentos": {
+            "type": "integer",
+            "nullable": true
+          },
+          "renovacao_automatica": {
+            "type": "boolean"
+          },
+          "itens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Plano"
+            }
+          }
+        },
+        "required": [
+          "moeda",
+          "por_tenant",
+          "limite_documentos",
+          "renovacao_automatica",
+          "itens"
+        ]
+      },
+      "Aviso": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador para evitar repeticao de avisos na interface."
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "nivel": {
+            "type": "string",
+            "enum": [
+              "aviso",
+              "atencao"
+            ]
+          },
+          "mensagem": {
+            "type": "string"
+          },
+          "acao": {
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string"
+              },
+              "rotulo": {
+                "type": "string"
+              },
+              "rota": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "tipo",
+              "rotulo",
+              "rota"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "codigo",
+          "nivel",
+          "mensagem",
+          "acao"
+        ]
+      },
+      "CobrancaPendente": {
+        "type": "object",
+        "properties": {
+          "id_cobranca": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plano_codigo": {
+            "type": "string"
+          },
+          "situacao": {
+            "type": "string"
+          },
+          "valor_centavos": {
+            "type": "integer"
+          },
+          "vence_em": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "id_cobranca",
+          "plano_codigo",
+          "situacao",
+          "valor_centavos",
+          "vence_em"
+        ],
+        "nullable": true
+      },
+      "Assinatura": {
+        "type": "object",
+        "properties": {
+          "id_empresa": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "modalidade": {
+            "type": "string",
+            "enum": [
+              "direta",
+              "parceiro"
+            ]
+          },
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "trial",
+              "ativa",
+              "vencida",
+              "gerenciada_pelo_parceiro"
+            ]
+          },
+          "trial_iniciado_em": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "trial_termina_em": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pago_ate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "valido_ate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dias_restantes": {
+            "type": "integer"
+          },
+          "monitoramento_protegido_ate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "consultar_novamente_em_segundos": {
+            "type": "integer",
+            "example": 300
+          },
+          "cobranca_pendente": {
+            "$ref": "#/components/schemas/CobrancaPendente"
+          },
+          "avisos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Aviso"
+            }
+          },
+          "acesso": {
+            "type": "object",
+            "properties": {
+              "listar_documentos": {
+                "type": "boolean"
+              },
+              "baixar_xml": {
+                "type": "boolean"
+              },
+              "monitoramento": {
+                "type": "boolean"
+              },
+              "gerenciar_assinatura": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "listar_documentos",
+              "baixar_xml",
+              "monitoramento",
+              "gerenciar_assinatura"
+            ]
+          }
+        },
+        "required": [
+          "id_empresa",
+          "modalidade",
+          "situacao",
+          "trial_iniciado_em",
+          "trial_termina_em",
+          "pago_ate",
+          "valido_ate",
+          "dias_restantes",
+          "monitoramento_protegido_ate",
+          "consultar_novamente_em_segundos",
+          "cobranca_pendente",
+          "avisos",
+          "acesso"
+        ]
+      },
+      "Cobranca": {
+        "type": "object",
+        "properties": {
+          "id_cobranca": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plano_codigo": {
+            "type": "string"
+          },
+          "meses": {
+            "type": "integer"
+          },
+          "valor_centavos": {
+            "type": "integer"
+          },
+          "moeda": {
+            "type": "string",
+            "enum": [
+              "BRL"
+            ]
+          },
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "criando",
+              "pendente",
+              "vencida",
+              "confirmada",
+              "recebida",
+              "cancelada",
+              "estornada",
+              "contestada"
+            ]
+          },
+          "ambiente": {
+            "type": "string",
+            "enum": [
+              "sandbox",
+              "producao"
+            ]
+          },
+          "url_pagamento": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "forma_pagamento": {
+            "type": "string",
+            "enum": [
+              "a_escolher",
+              "pix",
+              "cartao_credito",
+              "cartao_debito",
+              "boleto"
+            ],
+            "nullable": true
+          },
+          "pagamento_aprovado": {
+            "type": "boolean"
+          },
+          "aprovada_em": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "recebida_em": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "vence_em": {
+            "type": "string",
+            "format": "date"
+          },
+          "consultar_novamente_em_segundos": {
+            "type": "integer",
+            "example": 10
+          },
+          "pix": {
+            "type": "object",
+            "properties": {
+              "imagem_base64": {
+                "type": "string",
+                "description": "PNG codificado em Base64."
+              },
+              "copia_cola": {
+                "type": "string"
+              },
+              "expira_em": {
+                "type": "string",
+                "description": "Validade do QR de pagamento retornado pela API."
+              }
+            },
+            "required": [
+              "imagem_base64",
+              "copia_cola",
+              "expira_em"
+            ]
+          },
+          "assinatura": {
+            "$ref": "#/components/schemas/Assinatura"
+          }
+        },
+        "required": [
+          "id_cobranca",
+          "plano_codigo",
+          "meses",
+          "valor_centavos",
+          "moeda",
+          "situacao",
+          "ambiente",
+          "url_pagamento",
+          "forma_pagamento",
+          "pagamento_aprovado",
+          "aprovada_em",
+          "recebida_em",
+          "vence_em",
+          "consultar_novamente_em_segundos",
+          "assinatura"
+        ]
+      }
+    }
+  }
+}

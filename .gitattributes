@@ -1,0 +1,2 @@
+# Bundle de terceiro: preservar os bytes e o SHA256 publicados pelo fornecedor.
+docs/api/scalar.js -text -diff -whitespace

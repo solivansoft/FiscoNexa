@@ -2,6 +2,51 @@
 
 Atualizado em 2026-09-08 (America/Sao_Paulo).
 
+## Portal de integracao e guardrail de autenticacao
+
+Revisao de exposicao: portal publico reduzido a 11 operacoes de integracao.
+Contrato completo (21 operacoes) em `docs/openapi-interno.json`, fora da pasta
+publica; acesso em `/docs/interno.html` mediante token de sessao superadmin,
+validado por `GET /administracao/documentacao`. Token em URL nao autentica.
+Informacoes comerciais internas e rotas de administracao/webhook nao constam
+no JSON publico. Assinatura descrita como servico FiscoNexa pago pelo tenant;
+integrador envia plano_codigo e nao define valores ou recebedor.
+Gates atuais: 56 negativas HTTP e 141 verificacoes adicionais locais; 3 testes
+de contrato/projecao/instrumento. A nova rota responde JSON UTF-8 sem cache.
+Release `2026.09.08-docs-privadas-rc1` instalada em producao e sandbox, com
+gates HTTP aprovados e timers retomados. SHA256 do pacote:
+`2af45f1f6106ab68130e15b5d0784276ffb30496797cd072c98617ccfc1e921b`.
+Navegador validou superadmin abrindo o contrato completo, encerramento da
+visualizacao e recusa de token invalido. Publicacao tambem exige lista explicita
+de assets, para impedir inclusao acidental de arquivos internos na pasta publica.
+
+Publicado em https://api.fisconexa.com.br/docs e
+https://sandbox.fisconexa.com.br/docs. Scalar local 1.68.0, interface pt-BR,
+OpenAPI com 20 operacoes, exemplos e guias ERP/XML/assinatura. Detalhes de
+manutencao e comandos em [PORTAL_API.md](PORTAL_API.md).
+
+Corrigida validacao de usuario desabilitado em sessao existente. Regressao
+reproduzida antes da correcao; 86/86 unitarios passaram depois. Builds Windows
+e Linux aprovados. 53 negativas HTTP passaram localmente e nos dois ambientes
+Linux; 132 verificacoes adicionais passaram com PostgreSQL local dedicado.
+Inventario/contrato no build e workflow CI; teste negativo no instalador Linux
+antes de aceitar a release. O workflow foi criado, ainda sem execucao remota.
+
+API producao e sandbox atualizadas para `2026.09.08-documentacao-rc2`; API,
+timer fiscal e conciliadores ativos apos os gates. Backup pre-deploy em
+`D:\Backups\fisconexa-pre-documentacao-20260908.dump`, SHA256
+`2d4fb2c7014b85b5b0065f32ab4ba69f1f30158c51dc3d203bccb585d0a2e402`.
+Pacote Linux rc2 SHA256:
+`30dc15bf88de1681275f5e59cb8ec5261dc513693d931a3097273c0efabd7d6a`.
+Sem alteracao de schema ou criacao de cobranca real nesta entrega.
+
+## Frente futura
+
+Proxima frente futura registrada: carteira, assinatura e painel web do contador,
+com cadastro pelo certificado A1 e aceite de autorizacao pelo escritorio, sem
+exigir operacao do cliente. Ainda nao implementada. Escopo e gates em
+[DECISOES_PENDENTES.md](DECISOES_PENDENTES.md#proxima-frente-futura-carteira-e-painel-do-contador).
+
 ## Assinaturas e Asaas em homologacao
 
 Deploy em producao concluido em 2026-09-08 07:04 UTC. A release

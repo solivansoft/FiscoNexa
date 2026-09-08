@@ -136,7 +136,7 @@ var
 begin
   Token := ParseBearerToken(AAuthorization);
   if (Token = '') or not FStore.FindSessionUser(
-    THashSHA2.GetHashString(Token).ToLowerInvariant, User) then
+    THashSHA2.GetHashString(Token).ToLowerInvariant, User) or User.Disabled then
     raise EAuthenticationUnauthorized.Create('Sessao ausente ou invalida.');
   FStore.RevokeByAccessTokenHash(THashSHA2.GetHashString(Token).ToLowerInvariant);
 end;
@@ -151,7 +151,7 @@ begin
     raise EAuthenticationInvalid.Create('Nova senha obrigatoria.');
   Token := ParseBearerToken(AAuthorization);
   if (Token = '') or not FStore.FindSessionUser(
-    THashSHA2.GetHashString(Token).ToLowerInvariant, User) then
+    THashSHA2.GetHashString(Token).ToLowerInvariant, User) or User.Disabled then
     raise EAuthenticationUnauthorized.Create('Sessao ausente ou invalida.');
   if not VerifyPassword(ACurrentPassword, User.PasswordHash) then
     raise EAuthenticationUnauthorized.Create('Senha atual invalida.');
@@ -165,7 +165,7 @@ var
 begin
   Token := ParseBearerToken(AAuthorization);
   if (Token = '') or not FStore.FindSessionUser(
-    THashSHA2.GetHashString(Token).ToLowerInvariant, Result) then
+    THashSHA2.GetHashString(Token).ToLowerInvariant, Result) or Result.Disabled then
     raise EAuthenticationUnauthorized.Create('Sessao ausente ou invalida.');
   if Result.PlatformRole <> 'superadmin' then
     raise EAuthenticationForbidden.Create('Superadmin obrigatorio.');

@@ -13,6 +13,7 @@ uses
   Persistence.Assinaturas,
   System.JSON,
   Horse,
+  Api.Routes.Documentation,
   Api.Routes.Assinaturas,
   Api.Routes.AdminErps,
   Api.Routes.Auth,
@@ -84,6 +85,7 @@ begin
       finally J.Free; end;
     end);
   RegisterHealthRoute;
+  RegisterDocumentationRoutes;
   RegisterSubscriptionRoutes;
   RegisterAuthRoutes;
   RegisterAdminErpRoutes;

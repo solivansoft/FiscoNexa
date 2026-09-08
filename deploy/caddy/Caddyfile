@@ -1,6 +1,9 @@
 api.fisconexa.com.br {
   encode zstd gzip
-  reverse_proxy 127.0.0.1:9000
+  import /etc/caddy/fisconexa-docs.caddy
+  handle {
+    reverse_proxy 127.0.0.1:9000
+  }
   header {
     -Server
     Strict-Transport-Security "max-age=31536000; includeSubDomains"

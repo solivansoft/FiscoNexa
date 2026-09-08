@@ -1,0 +1,10 @@
+:root { color-scheme: light dark; }
+body { margin: 0; font-family: system-ui, sans-serif; }
+.portal-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 28px; background: #111c2e; color: #eaf2ff; border-bottom: 1px solid #26364d; }
+.brand { color: #fff; font-size: 23px; font-weight: 750; text-decoration: none; letter-spacing: -.8px; }
+.brand span { color: #42d9b4; }
+.brand small { margin-left: 16px; font-size: 10px; letter-spacing: 2px; color: #9baec7; }
+nav a { color: #c5d6ed; font-size: 13px; text-decoration: none; }
+nav a:hover { color: #42d9b4; }
+.loading { padding: 32px; }
+@media (max-width: 540px) { .portal-header { padding: 14px 16px; } .brand small { display: none; } }

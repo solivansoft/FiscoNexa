@@ -12,6 +12,7 @@ type
     procedure TestRefreshRevokesPreviousToken;
     procedure TestRequireSuperadminRejectsNonSuperadmin;
     procedure TestChangePasswordRevokesCurrentSession;
+    procedure TestDisabledUserCannotUseExistingSession;
   end;
 
 implementation
@@ -39,6 +40,7 @@ type
     procedure RevokeByAccessTokenHash(const ATokenHash: string);
     procedure ChangePassword(const AUserId, APasswordHash: string);
     procedure SetPlatformRole(const AValue: string);
+    procedure DisableUser;
     property User: TAuthUser read FUser;
     property RefreshRevoked: Boolean read FRefreshRevoked;
   end;
@@ -98,6 +100,13 @@ end;
 procedure TFakeAuthenticationStore.SetPlatformRole(const AValue: string);
 begin
   FUser.PlatformRole := AValue;
+end;
+
+procedure TFakeAuthenticationStore.DisableUser;
+begin
+  FUser.Disabled := True;
+  FSessionUser.Disabled := True;
+  FRefreshUser.Disabled := True;
 end;
 
 procedure TFakeAuthenticationStore.ChangePassword(const AUserId, APasswordHash: string);
@@ -214,6 +223,43 @@ begin
     end;
     Session := Service.Login('admin@example.com', 'nova-senha');
     AssertTrue(Session.AccessToken <> '');
+  finally
+    Service.Free;
+  end;
+end;
+
+procedure TAuthenticationTests.TestDisabledUserCannotUseExistingSession;
+var
+  StoreObject: TFakeAuthenticationStore;
+  Store: IAuthenticationStore;
+  Service: TAuthenticationService;
+  Session: TAuthSession;
+begin
+  StoreObject := TFakeAuthenticationStore.Create;
+  Store := StoreObject;
+  Service := TAuthenticationService.Create(Store);
+  try
+    Service.BootstrapFirstSuperadmin('admin@example.com', 'senha');
+    Session := Service.Login('admin@example.com', 'senha');
+    StoreObject.DisableUser;
+    try
+      Service.RequireSuperadmin('Bearer ' + Session.AccessToken);
+      Fail('Usuario desabilitado manteve acesso administrativo.');
+    except
+      on E: EAuthenticationUnauthorized do AssertTrue(True);
+    end;
+    try
+      Service.ChangePassword('Bearer ' + Session.AccessToken, 'senha', 'nova');
+      Fail('Usuario desabilitado alterou a senha.');
+    except
+      on E: EAuthenticationUnauthorized do AssertTrue(True);
+    end;
+    try
+      Service.Logout('Bearer ' + Session.AccessToken);
+      Fail('Sessao de usuario desabilitado foi aceita.');
+    except
+      on E: EAuthenticationUnauthorized do AssertTrue(True);
+    end;
   finally
     Service.Free;
   end;
