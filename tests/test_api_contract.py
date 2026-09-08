@@ -17,8 +17,8 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
-PUBLIC = {('GET', '/health'), ('POST', '/autenticacao/entrar'),
-          ('POST', '/autenticacao/renovar')}
+PUBLIC = {('GET', '/health'), ('POST', '/auth/login'),
+          ('POST', '/auth/refresh')}
 METHODS = {'get', 'post', 'put', 'delete', 'patch', 'head', 'options'}
 
 
@@ -45,7 +45,7 @@ def contract():
     spec = json.loads((ROOT / 'docs/openapi-interno.json').read_text(encoding='utf-8'))
     public = json.loads((ROOT / 'docs/api/openapi.json').read_text(encoding='utf-8'))
     assert public == project(spec), 'Contrato publico divergente; execute scripts/public_api_spec.py'
-    assert not any(path.startswith(('/administracao', '/autenticacao', '/webhooks')) for path in public['paths'])
+    assert not any(path.startswith(('/admin', '/auth', '/webhooks')) for path in public['paths'])
     assert not (ROOT / 'docs/api/openapi-interno.json').exists(), 'Contrato interno dentro da pasta publica'
     assets = {'index.html', 'openapi.json', 'iniciar.js', 'portal.css', 'scalar.js',
               'scalar-LICENSE.txt', 'scalar-version.json', 'interno.html', 'interno.js'}
@@ -113,8 +113,8 @@ def negative_http(base, policy):
             code, _ = request(base, method, path, entry['body'], hdr)
             assert code == 401, f'{route} ({label}): esperado 401; recebido {code}'
             count += 1
-    for path, body in [('/autenticacao/entrar', {'email': 'inexistente-guardrail@example.invalid', 'senha': 'invalida'}),
-                       ('/autenticacao/renovar', {'token_renovacao': 'invalido'})]:
+    for path, body in [('/auth/login', {'email': 'inexistente-guardrail@example.invalid', 'senha': 'invalida'}),
+                       ('/auth/refresh', {'token_renovacao': 'invalido'})]:
         code, _ = request(base, 'POST', path, body)
         assert code == 401, f'{path}: credencial no corpo aceita ({code})'
         count += 1
@@ -139,8 +139,8 @@ class ContractTests(unittest.TestCase):
     def test_projecao_nao_publica_rota_administrativa_nova(self):
         from public_api_spec import project
         spec, _ = contract()
-        spec['paths']['/administracao/nova-rota'] = {'get': {'tags': ['Administração'], 'security': [{'Superadmin': []}]}}
-        assert '/administracao/nova-rota' not in project(spec)['paths']
+        spec['paths']['/admin/nova-rota'] = {'get': {'tags': ['Administração'], 'security': [{'Superadmin': []}]}}
+        assert '/admin/nova-rota' not in project(spec)['paths']
 
 
 if __name__ == '__main__':

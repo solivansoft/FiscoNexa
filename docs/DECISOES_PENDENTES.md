@@ -1,5 +1,85 @@
 # Decisoes pendentes
 
+## Portal de usuarios, contadores e ERPs — backlog de 2026-09-08
+
+Registrado por solicitacao do responsavel. Todos os itens abaixo sao pendentes;
+esta anotacao nao declara implementacao ou homologacao. O painel consumira a
+API, que concentra regras de negocio e autorizacao. Estruturas existentes no
+banco nao significam que os fluxos HTTP estejam completos.
+
+### Funcionalidades a entregar
+
+- [ ] Conta: cadastro de usuario, confirmacao de e-mail, recuperacao de senha,
+  consulta/edicao do perfil e listagem/revogacao de sessoes. Reutilizar login,
+  refresh, logout e troca de senha existentes.
+- [ ] Organizacoes: cadastro de escritorio e organizacao ERP, convite e aceite
+  de colaboradores, papeis/permissoes e remocao de membros.
+- [ ] ERPs do usuario: qualquer usuario autenticado, contador ou nao, pode
+  cadastrar ERP, listar os ERPs autorizados e emitir/rotacionar/revogar suas
+  chaves. Nao conceder superadmin por esse cadastro. Hoje a gestao exige
+  superadmin; falta implementar o fluxo do proprio usuario.
+- [ ] Carteira: cadastrar empresa pelo painel com certificado, listar somente
+  empresas autorizadas, compartilhar acesso e revogar vinculos. Preservar o
+  onboarding existente por chave ERP e o fluxo simplificado do contador,
+  com certificado e aceite de autorizacao descrito adiante neste documento.
+- [ ] Certificados: consultar validade e renovar pelo painel sem reiniciar NSU,
+  apagar documentos ou duplicar monitoramento.
+- [ ] Documentos: consulta autorizada por empresa, periodo, emitente e situacao,
+  download individual e exportacao mensal em ZIP. Exportacoes em lote devem
+  executar em segundo plano, com consulta de andamento e entrega autorizada.
+- [ ] Assinatura do escritorio: planos, franquia de CNPJs, uso, cobrancas e
+  pagamentos da carteira. A assinatura direta do tenant ja existe; esta frente
+  nao deve recria-la. Precos e limites do contador ainda precisam ser definidos.
+- [ ] Avisos: central de notificacoes para certificado proximo do vencimento ou
+  vencido, assinatura e pendencias de XML. Reutilizar os avisos comerciais ja
+  existentes no retorno da assinatura; definir leitura e canais de entrega.
+- [ ] Visao da carteira: indicadores de empresas ativas/inativas, validade de
+  certificados, ultima/proxima consulta e documentos/XMLs disponiveis/pendentes,
+  sempre limitados ao acesso do usuario. Grafana continua sendo operacional.
+- [ ] Seguranca: limitacao de tentativas, recuperacao segura de conta, MFA para
+  administradores e testes de isolamento entre usuarios e organizacoes.
+- [ ] Higiene do planejamento: reconciliar ledger, status e pendencias antigas
+  com codigo e evidencias; ha itens historicos pendentes ja entregues em outras
+  frentes. Nao marcar conclusao apenas porque tabela ou rota existe.
+
+### Contratos e decisoes antes da implementacao
+
+- Separar usuario, organizacao, empresa e assinatura. Uma pessoa pode integrar
+  um escritorio e cadastrar ERP; tipo de organizacao nao define privilegio de
+  plataforma nem concede acesso automatico a CNPJs.
+- Definir uma regra central de autorizacao por empresa, utilizada por todos os
+  casos de uso do painel. Diferenciar leitura de XML, administracao de acesso e
+  manifestacao fiscal. Revogacao deve valer nas requisicoes seguintes.
+- Separar quem paga de quem acessa. Resolver a convivencia de assinatura direta
+  da empresa e assinatura do escritorio: cobertura, franquia e responsabilidade
+  pelo monitoramento compartilhado. Inadimplencia ou revogacao de um vinculo nao
+  deve bloquear outro acesso coberto por contrato vigente, nem duplicar captura
+  ou cobranca indevida.
+- Manter rotas tecnicas em ingles convencional (`/auth`, `/admin`, `/health`) e
+  recursos especificos do negocio em portugues. Contratos novos devem seguir
+  essa convencao, sem aliases de nomes intermediarios.
+
+### Ordem de entrega e gates
+
+1. Reconciliar o planejamento e fechar cadastro, verificacao e recuperacao de
+   conta, com tokens expiraveis/de uso unico e sem escalada de privilegios.
+2. Organizar membros e permissoes; provar isolamento entre organizacoes e
+   revogacao efetiva, inclusive para usuario que participa de mais de uma.
+3. Liberar gestao dos proprios ERPs/chaves; provar que um usuario ou chave ERP
+   nao administra organizacao alheia nem recebe privilegio de superadmin.
+4. Entregar onboarding pelo painel e carteira; provar idempotencia, certificado
+   valido, aceite quando aplicavel, vinculo autorizado e preservacao de NSU,
+   documentos e acesso ERP existentes.
+5. Entregar documentos, certificados, avisos e indicadores; provar filtros,
+   paginacao e isolamento, inclusive apos revogacao e na renovacao de A1.
+6. Entregar assinatura do contador e exportacoes em lote; testar coexistencia
+   de contratos, inadimplencia, limites e acesso ao arquivo gerado. Definir os
+   precos antes de ativar cobranca real dessa modalidade.
+
+Cada entrega exige contrato OpenAPI, guardrail de autenticacao/autorizacao,
+testes de regra de negocio e integracao apropriados. O portal nao deve receber
+uma funcionalidade cuja autorizacao dependa somente da interface.
+
 ## Backend do nucleo SaaS
 
 - Direcao escolhida: Delphi + Horse + PostgreSQL.

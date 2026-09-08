@@ -16,7 +16,7 @@ o webhook usa `asaas-access-token`, nao o token de tenant.
 
 O contrato completo (21 operacoes) fica em `docs/openapi-interno.json`, fora
 da pasta publicada. Para acessa-lo, abra `/docs/interno.html` e informe um
-token de sessao de superadmin. A pagina busca `GET /administracao/documentacao`
+token de sessao de superadmin. A pagina busca `GET /admin/documentacao`
 com Authorization: Bearer; o servidor valida sessao e papel, responde sem cache
 e nunca aceita token por parametro de URL. O formulario vazio nao inclui o
 contrato interno. Tokens ficam somente na memoria da pagina.

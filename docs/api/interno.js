@@ -8,7 +8,7 @@ form.addEventListener('submit', async (event) => {
   input.value = '';
   message.textContent = 'Validando acesso…';
   try {
-    const response = await fetch('/administracao/documentacao', {
+    const response = await fetch('/admin/documentacao', {
       headers: { Authorization: `Bearer ${token}` }, cache: 'no-store', redirect: 'error',
     });
     if (!response.ok) {

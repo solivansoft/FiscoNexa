@@ -55,7 +55,7 @@ function Suspend-Monitoring {
 function Revoke-SmokeKey {
   if ([string]::IsNullOrWhiteSpace($erpId) -or [string]::IsNullOrWhiteSpace($erpKeyId) -or [string]::IsNullOrWhiteSpace($adminToken)) { return }
   try {
-    Invoke-ApiJson 'DELETE' "/administracao/erps/$erpId/chaves/$erpKeyId" @{ Authorization = "Bearer $adminToken" } | Out-Null
+    Invoke-ApiJson 'DELETE' "/admin/erps/$erpId/chaves/$erpKeyId" @{ Authorization = "Bearer $adminToken" } | Out-Null
   } catch {
     Write-Warning 'Nao foi possivel revogar a chave ERP criada pelo smoke.'
   }
@@ -104,14 +104,14 @@ try {
   } while ((Get-Date) -lt $deadline)
   if ($null -eq $apiProcess -or $apiProcess.HasExited) { throw 'API encerrou antes do smoke.' }
 
-  $login = Invoke-ApiJson 'POST' '/autenticacao/entrar' @{} @{
+  $login = Invoke-ApiJson 'POST' '/auth/login' @{} @{
     email = $env:FISCONEXA_ADMIN_EMAIL
     senha = $env:FISCONEXA_ADMIN_PASSWORD
   }
   $adminToken = $login.token_acesso
   if ([string]::IsNullOrWhiteSpace($adminToken)) { throw 'Login nao retornou access token.' }
 
-  $erp = Invoke-ApiJson 'POST' '/administracao/erps' @{ Authorization = "Bearer $adminToken" } @{
+  $erp = Invoke-ApiJson 'POST' '/admin/erps' @{ Authorization = "Bearer $adminToken" } @{
     razao_social = 'Smoke monitoramento real ' + (Get-Date -Format 'yyyyMMddHHmmss')
     rotulo_chave = 'Uso unico'
   }

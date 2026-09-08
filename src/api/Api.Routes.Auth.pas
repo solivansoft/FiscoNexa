@@ -42,7 +42,7 @@ end;
 
 procedure RegisterAuthRoutes;
 begin
-  THorse.Post('/autenticacao/entrar',
+  THorse.Post('/auth/login',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     var
       Json: TJSONObject;
@@ -67,7 +67,7 @@ begin
       Json.Free;
     end);
 
-  THorse.Post('/autenticacao/renovar',
+  THorse.Post('/auth/refresh',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     var
       Json: TJSONObject;
@@ -92,7 +92,7 @@ begin
       Json.Free;
     end);
 
-  THorse.Put('/autenticacao/senha',
+  THorse.Put('/auth/password',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     var
       Json: TJSONObject;
@@ -117,7 +117,7 @@ begin
       Json.Free;
     end);
 
-  THorse.Post('/autenticacao/sair',
+  THorse.Post('/auth/logout',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     begin
       try

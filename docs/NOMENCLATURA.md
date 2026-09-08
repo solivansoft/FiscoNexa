@@ -2,10 +2,15 @@
 
 ## Rotas
 
+Rotas tecnicas usam ingles convencional: `/health`, `/admin`, `/auth/login`,
+`/auth/logout`, `/auth/refresh` e `/auth/password`. Recursos do negocio continuam
+em portugues. O cadastro previsto usa `/auth/register`; recuperacao de senha
+prevista usa `/auth/forgot-password` e `/auth/reset-password`.
+
 | Recurso | Rota adotada |
 | --- | --- |
-| administracao de ERP | `/administracao/erps` |
-| chaves de ERP | `/administracao/erps/{id_erp}/chaves` |
+| administracao de ERP | `/admin/erps` |
+| chaves de ERP | `/admin/erps/{id_erp}/chaves` |
 | empresas | `/v1/empresas` |
 | modulo de monitoramento | `/v1/empresas/{id_empresa}/modulos/monitoramento` |
 | monitoramento | `/v1/monitoramento` |

@@ -7,13 +7,13 @@ para sessao ou token de integracao e `Idempotency-Key` no cadastro de empresa.
 | Metodo e rota | Credencial | Uso |
 | --- | --- | --- |
 | `GET /health` | nenhuma | Retorna `{"situacao":"disponivel"}`. |
-| `POST /autenticacao/entrar` | nenhuma | Recebe `email` e `senha`; retorna `token_acesso`, `token_renovacao`, `tipo_token`, `expira_em`. |
-| `POST /autenticacao/renovar` | nenhuma | Recebe `token_renovacao`. |
-| `PUT /autenticacao/senha` | sessao | Recebe `senha_atual` e `nova_senha`. |
-| `POST /autenticacao/sair` | sessao | Revoga a sessao atual. |
-| `POST /administracao/erps` | superadmin | Recebe `razao_social`, `rotulo_chave`; retorna `id_erp`, `id_chave`, `chave_erp`. |
-| `POST /administracao/erps/{id_erp}/chaves` | superadmin | Rotaciona a chave, recebendo `rotulo_chave`. |
-| `DELETE /administracao/erps/{id_erp}/chaves/{id_chave}` | superadmin | Revoga a chave ERP. |
+| `POST /auth/login` | nenhuma | Recebe `email` e `senha`; retorna `token_acesso`, `token_renovacao`, `tipo_token`, `expira_em`. |
+| `POST /auth/refresh` | nenhuma | Recebe `token_renovacao`. |
+| `PUT /auth/password` | sessao | Recebe `senha_atual` e `nova_senha`. |
+| `POST /auth/logout` | sessao | Revoga a sessao atual. |
+| `POST /admin/erps` | superadmin | Recebe `razao_social`, `rotulo_chave`; retorna `id_erp`, `id_chave`, `chave_erp`. |
+| `POST /admin/erps/{id_erp}/chaves` | superadmin | Rotaciona a chave, recebendo `rotulo_chave`. |
+| `DELETE /admin/erps/{id_erp}/chaves/{id_chave}` | superadmin | Revoga a chave ERP. |
 | `POST /v1/empresas` | chave ERP bootstrap | Recebe A1 e inicia o monitoramento. |
 | `PUT /v1/empresas/{id_empresa}/modulos/monitoramento` | chave ERP bootstrap | Recebe `situacao`: `ativo`, `suspenso` ou `cancelado`. |
 | `GET /v1/monitoramento` | token do tenant | Retorna a situacao persistida do monitoramento. |

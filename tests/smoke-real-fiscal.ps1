@@ -92,12 +92,12 @@ try {
       if ($principal.Database -ne $env:POSTGRES_DB) { throw 'Banco do ERP piloto diverge.' }
       $erp = @{erp_key=$principal.Erp.GetNetworkCredential().Password}
     } else {
-    $login = ApiJson POST '/autenticacao/entrar' @{} @{email=$admin.UserName;senha=$admin.GetNetworkCredential().Password}
+    $login = ApiJson POST '/auth/login' @{} @{email=$admin.UserName;senha=$admin.GetNetworkCredential().Password}
     $oldKeys = Sql "select json_build_object('erp_id',k.organization_id,'key_id',k.id)::text from chaves_erp k join organizacoes o on o.id=k.organization_id where o.legal_name='Piloto fiscal autorizado' and k.revoked_at is null;"
     foreach ($entry in @($oldKeys)) {
-      if ($entry) { $oldKey=$entry|ConvertFrom-Json; ApiJson DELETE "/administracao/erps/$($oldKey.erp_id)/chaves/$($oldKey.key_id)" @{Authorization="Bearer $($login.token_acesso)"} | Out-Null }
+      if ($entry) { $oldKey=$entry|ConvertFrom-Json; ApiJson DELETE "/admin/erps/$($oldKey.erp_id)/chaves/$($oldKey.key_id)" @{Authorization="Bearer $($login.token_acesso)"} | Out-Null }
     }
-    $erp = ApiJson POST '/administracao/erps' @{Authorization="Bearer $($login.token_acesso)"} @{razao_social='Piloto fiscal autorizado';rotulo_chave='Piloto'}
+    $erp = ApiJson POST '/admin/erps' @{Authorization="Bearer $($login.token_acesso)"} @{razao_social='Piloto fiscal autorizado';rotulo_chave='Piloto'}
     }
     $body = @{
       uf=$env:FISCONEXA_TEST_SEFAZ_UF

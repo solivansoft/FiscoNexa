@@ -33,7 +33,7 @@ e comercial, nao propriedade do CNPJ; outros grants podem coexistir.
 
 | Rota | Credencial | Funcao |
 | --- | --- | --- |
-| `POST /administracao/erps` | plataforma/superadmin | Cadastra ERP homologado e retorna chave uma unica vez. |
+| `POST /admin/erps` | plataforma/superadmin | Cadastra ERP homologado e retorna chave uma unica vez. |
 | `POST /v1/empresas` | bootstrap ERP | Recebe A1 e senha, cria/retoma empresa, vinculo e monitoramento. |
 | `GET /v1/monitoramento` | token tenant | Retorna estado, intervalo, ultima/proxima consulta e documentos disponiveis do proprio CNPJ. |
 | `PUT /v1/empresas/{id_empresa}/modulos/monitoramento` | bootstrap ERP autorizado | Informa `ativo`, `suspenso` ou `cancelado` sem dados de cobranca. |

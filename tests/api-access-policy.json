@@ -3,44 +3,44 @@
     "security": null,
     "body": null
   },
-  "POST /autenticacao/entrar": {
+  "POST /auth/login": {
     "security": null,
     "body": {
       "email": "integrador@example.com",
       "senha": "exemplo-nao-utilizar"
     }
   },
-  "POST /autenticacao/renovar": {
+  "POST /auth/refresh": {
     "security": null,
     "body": {
       "token_renovacao": "exemplo-invalido"
     }
   },
-  "PUT /autenticacao/senha": {
+  "PUT /auth/password": {
     "security": "Sessao",
     "body": {
       "senha_atual": "exemplo-atual",
       "nova_senha": "exemplo-nova"
     }
   },
-  "POST /autenticacao/sair": {
+  "POST /auth/logout": {
     "security": "Sessao",
     "body": null
   },
-  "POST /administracao/erps": {
+  "POST /admin/erps": {
     "security": "Superadmin",
     "body": {
       "razao_social": "ERP Exemplo",
       "rotulo_chave": "Integracao"
     }
   },
-  "POST /administracao/erps/{id_erp}/chaves": {
+  "POST /admin/erps/{id_erp}/chaves": {
     "security": "Superadmin",
     "body": {
       "rotulo_chave": "Nova integracao"
     }
   },
-  "DELETE /administracao/erps/{id_erp}/chaves/{id_chave}": {
+  "DELETE /admin/erps/{id_erp}/chaves/{id_chave}": {
     "security": "Superadmin",
     "body": null
   },
@@ -92,7 +92,7 @@
     "security": "TokenTenant",
     "body": null
   },
-  "PUT /administracao/licencas/empresas/{id_empresa}": {
+  "PUT /admin/licencas/empresas/{id_empresa}": {
     "security": "Licencas",
     "body": {
       "situacao": "restrito",
@@ -110,7 +110,7 @@
       }
     }
   },
-  "GET /administracao/documentacao": {
+  "GET /admin/documentacao": {
     "security": "Superadmin",
     "body": null
   }

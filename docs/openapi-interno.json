@@ -91,14 +91,14 @@
         }
       }
     },
-    "/autenticacao/entrar": {
+    "/auth/login": {
       "post": {
         "tags": [
           "Autenticação"
         ],
         "summary": "Iniciar sessão",
         "description": "Iniciar sessão",
-        "operationId": "post_autenticacao_entrar",
+        "operationId": "post_auth_login",
         "security": [],
         "responses": {
           "200": {
@@ -148,14 +148,14 @@
         }
       }
     },
-    "/autenticacao/renovar": {
+    "/auth/refresh": {
       "post": {
         "tags": [
           "Autenticação"
         ],
         "summary": "Renovar sessão",
         "description": "Autenticada pelo token de renovação no corpo; não exige Bearer.",
-        "operationId": "post_autenticacao_renovar",
+        "operationId": "post_auth_refresh",
         "security": [],
         "responses": {
           "200": {
@@ -198,14 +198,14 @@
         }
       }
     },
-    "/autenticacao/senha": {
+    "/auth/password": {
       "put": {
         "tags": [
           "Autenticação"
         ],
         "summary": "Alterar senha",
         "description": "Alterar senha",
-        "operationId": "put_autenticacao_senha",
+        "operationId": "put_auth_password",
         "security": [
           {
             "Sessao": []
@@ -252,14 +252,14 @@
         }
       }
     },
-    "/autenticacao/sair": {
+    "/auth/logout": {
       "post": {
         "tags": [
           "Autenticação"
         ],
         "summary": "Encerrar sessão",
         "description": "Encerrar sessão",
-        "operationId": "post_autenticacao_sair",
+        "operationId": "post_auth_logout",
         "security": [
           {
             "Sessao": []
@@ -275,14 +275,14 @@
         }
       }
     },
-    "/administracao/erps": {
+    "/admin/erps": {
       "post": {
         "tags": [
           "Administração"
         ],
         "summary": "Cadastrar ERP",
         "description": "Cadastrar ERP",
-        "operationId": "post_administracao_erps",
+        "operationId": "post_admin_erps",
         "security": [
           {
             "Superadmin": []
@@ -355,14 +355,14 @@
         }
       }
     },
-    "/administracao/erps/{id_erp}/chaves": {
+    "/admin/erps/{id_erp}/chaves": {
       "post": {
         "tags": [
           "Administração"
         ],
         "summary": "Rotacionar chave ERP",
         "description": "Rotacionar chave ERP",
-        "operationId": "post_administracao_erps_id_erp_chaves",
+        "operationId": "post_admin_erps_id_erp_chaves",
         "security": [
           {
             "Superadmin": []
@@ -444,14 +444,14 @@
         }
       }
     },
-    "/administracao/erps/{id_erp}/chaves/{id_chave}": {
+    "/admin/erps/{id_erp}/chaves/{id_chave}": {
       "delete": {
         "tags": [
           "Administração"
         ],
         "summary": "Revogar chave ERP",
         "description": "Revogar chave ERP",
-        "operationId": "delete_administracao_erps_id_erp_chaves_id_chave",
+        "operationId": "delete_admin_erps_id_erp_chaves_id_chave",
         "security": [
           {
             "Superadmin": []
@@ -1155,14 +1155,14 @@
         ]
       }
     },
-    "/administracao/licencas/empresas/{id_empresa}": {
+    "/admin/licencas/empresas/{id_empresa}": {
       "put": {
         "tags": [
           "Administração"
         ],
         "summary": "Atualizar licenca do parceiro",
         "description": "Uso exclusivo do backend de licencas. Versao monotona por empresa; repeticoes não estendem prazo. Não utilizar chave do tenant.",
-        "operationId": "put_administracao_licencas_empresas_id_empresa",
+        "operationId": "put_admin_licencas_empresas_id_empresa",
         "security": [
           {
             "Licencas": []
@@ -1353,14 +1353,14 @@
         }
       }
     },
-    "/administracao/documentacao": {
+    "/admin/documentacao": {
       "get": {
         "tags": [
           "Administração"
         ],
         "summary": "Consultar contrato interno",
         "description": "Exclusivo para sessão de superadmin. Token no cabeçalho Authorization; parâmetros de URL não concedem acesso.",
-        "operationId": "get_administracao_documentacao",
+        "operationId": "get_admin_documentacao",
         "security": [
           {
             "Superadmin": []

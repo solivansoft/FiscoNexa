@@ -12,7 +12,7 @@ uses
 
 procedure RegisterDocumentationRoutes;
 begin
-  THorse.Get('/administracao/documentacao',
+  THorse.Get('/admin/documentacao',
     procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
     begin
       Res.AddHeader('Cache-Control', 'no-store');

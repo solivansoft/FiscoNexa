@@ -44,7 +44,7 @@ end;
 
 procedure RegisterAdminErpRoutes;
 begin
-  THorse.Post('/administracao/erps',
+  THorse.Post('/admin/erps',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     var Json: TJSONObject; Issue: TErpKeyIssue;
     begin
@@ -61,7 +61,7 @@ begin
       Json.Free;
     end);
 
-  THorse.Post('/administracao/erps/:id_erp/chaves',
+  THorse.Post('/admin/erps/:id_erp/chaves',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     var Json: TJSONObject; Issue: TErpKeyIssue;
     begin
@@ -79,7 +79,7 @@ begin
       Json.Free;
     end);
 
-  THorse.Delete('/administracao/erps/:id_erp/chaves/:id_chave',
+  THorse.Delete('/admin/erps/:id_erp/chaves/:id_chave',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     begin
       try

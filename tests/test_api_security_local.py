@@ -138,20 +138,20 @@ def run():
                 if sec == 'Superadmin':
                     check(method, path, item['body'], 'usuario', 403)
             # Controle positivo: validacao nao pode simplesmente negar tudo.
-            internal = check('GET', '/administracao/documentacao', None, 'admin', 200)
-            assert '/administracao/erps' in internal['paths']
-            code, _ = request(BASE, 'GET', '/administracao/documentacao?token='+tokens['admin'])
+            internal = check('GET', '/admin/documentacao', None, 'admin', 200)
+            assert '/admin/erps' in internal['paths']
+            code, _ = request(BASE, 'GET', '/admin/documentacao?token='+tokens['admin'])
             assert code == 401, 'Token em parametro concedeu acesso ao contrato interno'
             assert check('GET', '/v1/assinatura', None, 'tenant', 200)['id_empresa'] == companies[0]
             assert check('GET', '/v1/assinatura', None, 'outro', 200)['id_empresa'] == companies[1]
             assert check('GET', '/v1/planos', None, 'tenant', 200)['itens']
-            check('POST', '/administracao/erps', {'razao_social': 'Fixture '+nonce, 'rotulo_chave':'Fixture'}, 'admin', 201)
+            check('POST', '/admin/erps', {'razao_social': 'Fixture '+nonce, 'rotulo_chave':'Fixture'}, 'admin', 201)
             # Controle positivo do bootstrap via modulo: onboarding precisa KMS/A1,
             # recursos externos que este teste isolado deliberadamente nao usa.
             check('PUT', '/v1/empresas/00000000-0000-4000-8000-000000000000/modulos/monitoramento',
                   {'situacao':'suspenso'}, 'erp', 404)
             check('POST', '/webhooks/asaas', {}, 'webhook', 422, webhook=True)
-            check('PUT', '/administracao/licencas/empresas/00000000-0000-4000-8000-000000000000',
+            check('PUT', '/admin/licencas/empresas/00000000-0000-4000-8000-000000000000',
                   {'situacao':'restrito','versao':1,'referencia':'fixture'}, 'licenca', 404)
             doc = sql(f"insert into documentos(company_id,access_key,document_type,status) values('{companies[0]}','{uuid.uuid4().int % (10**44):044d}','NFe','located') returning id")
             check('GET', '/v1/documentos/'+doc+'/xml', None, 'outro', 404)

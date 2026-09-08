@@ -45,7 +45,7 @@ end;
 
 procedure RegisterLicenseRoutes;
 begin
-  THorse.Put('/administracao/licencas/empresas/:id_empresa',
+  THorse.Put('/admin/licencas/empresas/:id_empresa',
     procedure(ARequest: THorseRequest; AResponse: THorseResponse; ANext: TProc)
     var J: TJSONValue; U: TCommercialAccessUpdate; R: TCommercialAccessResult;
     begin

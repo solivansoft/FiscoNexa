@@ -2,12 +2,25 @@
 
 Atualizado em 2026-09-08 (America/Sao_Paulo).
 
+## Alteracoes locais posteriores ao ultimo deploy
+
+Rotas tecnicas renomeadas para `/admin` e `/auth/login`, `/auth/refresh`,
+`/auth/password` e `/auth/logout`, com contrato, documentacao e testes ajustados.
+Build Windows, 3 testes de contrato, 56 negativas HTTP e 141 verificacoes de
+integracao aprovados. Esta alteracao ainda nao foi instalada nas VPS; a release
+`2026.09.08-docs-privadas-rc1` usa os prefixos anteriores `/administracao` e
+`/autenticacao`. Referencias abaixo aos novos nomes representam o codigo atual.
+
+Backlog do portal registrado em `DECISOES_PENDENTES.md`: contas, organizacoes,
+gestao dos proprios ERPs, carteira, certificados, documentos, assinatura do
+escritorio, avisos, indicadores e seguranca. Esses fluxos seguem pendentes.
+
 ## Portal de integracao e guardrail de autenticacao
 
 Revisao de exposicao: portal publico reduzido a 11 operacoes de integracao.
 Contrato completo (21 operacoes) em `docs/openapi-interno.json`, fora da pasta
 publica; acesso em `/docs/interno.html` mediante token de sessao superadmin,
-validado por `GET /administracao/documentacao`. Token em URL nao autentica.
+validado por `GET /admin/documentacao`. Token em URL nao autentica.
 Informacoes comerciais internas e rotas de administracao/webhook nao constam
 no JSON publico. Assinatura descrita como servico FiscoNexa pago pelo tenant;
 integrador envia plano_codigo e nao define valores ou recebedor.

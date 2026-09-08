@@ -49,7 +49,7 @@ do que e somente planejado e define a proxima dependencia elegivel.
 | ID | Estado | Camada | Depende de | Contrato observavel | Oraculo / gate |
 | --- | --- | --- | --- | --- | --- |
 | AUTH-001 | OK | core/domain/application/persistence | DB-001 | `--user-create` cria uma unica vez o primeiro superadmin; senha usa PBKDF2-SHA-256 com salt; sessao possui access token, refresh rotativo, expiracao e revogacao. | 2026-09-05: `scripts\test-unit.bat` e `tests\smoke-auth-admin.ps1` aprovaram criacao unica, refresh reutilizado recusado, troca de senha e logout. |
-| AUTH-002 | PENDENTE | api | AUTH-001 | Registro cria usuario sem expor hash e recusa email duplicado. | `POST /autenticacao/cadastro`: 201, 409 e 422. |
+| AUTH-002 | PENDENTE | api | AUTH-001 | Registro cria usuario sem expor hash e recusa email duplicado. | `POST /auth/register`: 201, 409 e 422. |
 | AUTH-003 | OK | api | AUTH-001 | Login emite sessao somente para senha valida e usuario ativo. | 2026-09-05: `tests\smoke-auth-admin.ps1` aprovou access e refresh token; credenciais invalidas sao 401. |
 | AUTH-004 | OK | api | AUTH-001 | Renovacao e encerramento de sessao nao permitem reutilizar credencial revogada. | 2026-09-05: `tests\smoke-auth-admin.ps1` aprovou refresh rotativo, rejeicao de replay, troca de senha e logout. |
 | ACCESS-001 | PENDENTE | domain/application | AUTH-001 | Checagem de acesso a CNPJ e unica, explicita e reutilizada por todos os casos de uso. | Matriz de grants humano, organizacao e token ERP. |
@@ -100,16 +100,16 @@ e nao devem ser registradas antes de seus itens de dependencia ficarem `OK`.
 | Rota | Estado | Caso de uso | Dependencias |
 | --- | --- | --- | --- |
 | `GET /health` | OK | disponibilidade local da API | API-001 |
-| `POST /administracao/erps` | OK | cadastrar ERP homologado e emitir chave | AUTH-001, ERP-ADMIN-001 |
-| `POST /administracao/erps/{id_erp}/chaves` | OK | rotacionar chave de ERP | AUTH-001, ERP-ADMIN-001 |
-| `DELETE /administracao/erps/{id_erp}/chaves/{id_chave}` | OK | revogar chave de ERP | AUTH-001, ERP-ADMIN-001 |
-| `POST /autenticacao/cadastro` | PENDENTE | cadastrar usuario humano | AUTH-001, AUTH-002 |
-| `POST /autenticacao/entrar` | OK | iniciar sessao humana | AUTH-001, AUTH-003 |
-| `POST /autenticacao/renovar` | OK | renovar sessao | AUTH-001, AUTH-004 |
-| `POST /autenticacao/sair` | OK | revogar sessao atual | AUTH-001, AUTH-004 |
-| `PUT /autenticacao/senha` | OK | alterar senha e revogar sessoes | AUTH-001, AUTH-004 |
-| `POST /autenticacao/recuperar-senha` | PENDENTE | iniciar recuperacao de senha | AUTH-001 |
-| `POST /autenticacao/recuperar-senha/confirmar` | PENDENTE | definir nova senha com token valido | AUTH-001 |
+| `POST /admin/erps` | OK | cadastrar ERP homologado e emitir chave | AUTH-001, ERP-ADMIN-001 |
+| `POST /admin/erps/{id_erp}/chaves` | OK | rotacionar chave de ERP | AUTH-001, ERP-ADMIN-001 |
+| `DELETE /admin/erps/{id_erp}/chaves/{id_chave}` | OK | revogar chave de ERP | AUTH-001, ERP-ADMIN-001 |
+| `POST /auth/register` | PENDENTE | cadastrar usuario humano | AUTH-001, AUTH-002 |
+| `POST /auth/login` | OK | iniciar sessao humana | AUTH-001, AUTH-003 |
+| `POST /auth/refresh` | OK | renovar sessao | AUTH-001, AUTH-004 |
+| `POST /auth/logout` | OK | revogar sessao atual | AUTH-001, AUTH-004 |
+| `PUT /auth/password` | OK | alterar senha e revogar sessoes | AUTH-001, AUTH-004 |
+| `POST /auth/forgot-password` | PENDENTE | iniciar recuperacao de senha | AUTH-001 |
+| `POST /auth/reset-password` | PENDENTE | definir nova senha com token valido | AUTH-001 |
 | `POST /empresas` | PENDENTE | iniciar empresa/CNPJ | COMPANY-001 |
 | `GET /empresas` | PENDENTE | listar CNPJs autorizados | ACCESS-001, COMPANY-001 |
 | `POST /empresas/{id_empresa}/acessos/usuarios` | PENDENTE | compartilhar com usuario | COMPANY-002 |

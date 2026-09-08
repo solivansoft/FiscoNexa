@@ -79,9 +79,21 @@ prevalecem quando houver conflito.
 
 ## Nomenclatura
 
+- Atualizacao expressa do responsavel: rotas tecnicas seguem convencoes em
+  ingles (`/health`, `/admin`, `/auth/login`, `/auth/logout`, `/auth/refresh`
+  e `/auth/password`). Portugues fica para recursos especificos do negocio,
+  como empresas, documentos, monitoramento, assinaturas e cobrancas. Esta
+  regra especializa a orientacao anterior de rotas em portugues.
+- O painel consome a API; regras de negocio e autorizacao pertencem ao backend.
+  Qualquer usuario autenticado pode cadastrar seu ERP, sendo contador ou nao,
+  sem receber privilegios administrativos da plataforma. Onboarding de empresa
+  deve funcionar tanto pelo ERP quanto pelo usuario no painel, com validacao
+  de certificado e vinculo de acesso. Estas regras substituem a exclusividade
+  administrativa anterior para gestao de credenciais dos proprios ERPs.
+
 - Rotas publicas usam colecoes curtas em portugues do Brasil, minusculas e no
   plural. Quando um segmento composto for inevitavel, usa `kebab-case`; por
-  exemplo, `/administracao/erps`, `/empresas`, `/monitoramento` e `/modulos`.
+  exemplo, `/admin/erps`, `/empresas`, `/monitoramento` e `/modulos`.
 - Tabelas usam substantivos simples no plural e nao recebem prefixo tecnico de
   camada ou modulo. Seguem a mesma semantica das rotas; em nomes compostos,
   usam `snake_case`, pois hifen nao e apropriado em SQL. Tabelas de relacao
