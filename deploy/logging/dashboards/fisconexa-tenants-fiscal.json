@@ -1,0 +1,1112 @@
+{
+  "id": null,
+  "timezone": "browser",
+  "version": 1,
+  "timepicker": {},
+  "time": {
+    "to": "now",
+    "from": "now-30d"
+  },
+  "graphTooltip": 1,
+  "description": "Visão executiva de tenants, licenças, certificados, monitoramento fiscal, documentos e XML.",
+  "annotations": {
+    "list": []
+  },
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": {
+              "color": "blue"
+            },
+            "mode": "absolute"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 1,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 0,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Tenants ativos",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select tenants_ativos as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "red"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 2,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 3,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Tenants em atenção",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select tenants_em_atencao as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "red"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 3,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Certificados vencendo em 30 dias",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select certificados_vencendo_30_dias as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "red"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 4,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 9,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Certificados vencidos",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select certificados_vencidos as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": {
+              "color": "blue"
+            },
+            "mode": "absolute"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 5,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 12,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Documentos monitorados",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select documentos_monitorados as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": {
+              "color": "blue"
+            },
+            "mode": "absolute"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 6,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 15,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "XML baixados",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select xml_baixados as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "red"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 7,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 18,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Documentos sem XML",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select documentos_sem_xml as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": {
+              "color": "blue"
+            },
+            "mode": "absolute"
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "id": 8,
+      "gridPos": {
+        "y": 0,
+        "w": 3,
+        "x": 21,
+        "h": 4
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Cobertura de XML",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select cobertura_xml_percentual as valor from observabilidade.kpis_gerais",
+          "format": "table"
+        }
+      ],
+      "type": "stat",
+      "options": {
+        "textMode": "auto",
+        "wideLayout": true,
+        "graphMode": "none",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "justifyMode": "center",
+        "orientation": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "id": 9,
+      "gridPos": {
+        "y": 4,
+        "w": 7,
+        "x": 0,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Situação dos tenants",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select situacao_monitoramento as situacao, count(*)::bigint as quantidade from observabilidade.tenants_resumo group by situacao_monitoramento order by situacao_monitoramento",
+          "format": "table"
+        }
+      ],
+      "type": "piechart",
+      "options": {
+        "tooltip": {
+          "sort": "none",
+          "mode": "single"
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "values": [
+            "value"
+          ],
+          "placement": "right",
+          "showLegend": true,
+          "displayMode": "table"
+        }
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "id": 10,
+      "gridPos": {
+        "y": 4,
+        "w": 7,
+        "x": 7,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Situação dos certificados",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select situacao_certificado as situacao, count(*)::bigint as quantidade from observabilidade.tenants_resumo group by situacao_certificado order by situacao_certificado",
+          "format": "table"
+        }
+      ],
+      "type": "piechart",
+      "options": {
+        "tooltip": {
+          "sort": "none",
+          "mode": "single"
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "values": [
+            "value"
+          ],
+          "placement": "right",
+          "showLegend": true,
+          "displayMode": "table"
+        }
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "lineWidth": 1,
+            "showPoints": "never",
+            "drawStyle": "bars",
+            "fillOpacity": 35
+          },
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 11,
+      "gridPos": {
+        "y": 4,
+        "w": 10,
+        "x": 14,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Documentos descobertos e XML disponíveis",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select dia as time, documentos_monitorados, xml_baixados from observabilidade.documentos_por_dia where dia >= now() - interval '90 days' order by dia",
+          "format": "time_series"
+        }
+      ],
+      "type": "timeseries",
+      "options": {
+        "legend": {
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table"
+        },
+        "tooltip": {
+          "sort": "desc",
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ],
+            "matcher": {
+              "id": "byName",
+              "options": "Cobertura XML"
+            }
+          },
+          {
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyBRL"
+              }
+            ],
+            "matcher": {
+              "id": "byName",
+              "options": "Valor monitorado"
+            }
+          }
+        ]
+      },
+      "id": 12,
+      "gridPos": {
+        "y": 12,
+        "w": 24,
+        "x": 0,
+        "h": 11
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Tenants: operação, certificados e documentos",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select empresa as \"Empresa\", cnpj as \"CNPJ\", uf as \"UF\", situacao_empresa as \"Tenant\",\nsituacao_monitoramento as \"Monitor\", situacao_licenca as \"Licença\", situacao_certificado as \"Certificado\",\ncertificado_valido_ate as \"Validade\", dias_para_vencimento as \"Dias\", ultima_consulta as \"Última consulta\",\nproxima_consulta as \"Próxima consulta\", ultimo_nsu as \"NSU\", ultimo_cstat as \"cStat\", falhas as \"Falhas\",\ndocumentos_monitorados as \"Documentos\", xml_baixados as \"XML\", documentos_sem_xml as \"Sem XML\",\ncobertura_xml_percentual as \"Cobertura XML\", valor_total_documentos as \"Valor monitorado\"\nfrom observabilidade.tenants_resumo order by documentos_monitorados desc, empresa",
+          "format": "table"
+        }
+      ],
+      "type": "table",
+      "options": {
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Documentos",
+            "desc": true
+          }
+        ],
+        "showHeader": true
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 13,
+      "gridPos": {
+        "y": 23,
+        "w": 12,
+        "x": 0,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Documentos e XML por tenant",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select empresa, documentos_monitorados as \"Documentos\", xml_baixados as \"XML\" from observabilidade.tenants_resumo order by documentos_monitorados desc",
+          "format": "table"
+        }
+      ],
+      "type": "barchart",
+      "options": {
+        "stacking": "none",
+        "barRadius": 0,
+        "orientation": "horizontal",
+        "barWidth": 0.8,
+        "showValue": "auto",
+        "fullHighlight": false,
+        "legend": {
+          "placement": "bottom",
+          "showLegend": true,
+          "displayMode": "list"
+        },
+        "tooltip": {
+          "sort": "desc",
+          "mode": "multi"
+        },
+        "groupWidth": 0.7
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": []
+      },
+      "id": 14,
+      "gridPos": {
+        "y": 23,
+        "w": 12,
+        "x": 12,
+        "h": 9
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Certificados e próximas ações",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select empresa as \"Empresa\", cnpj as \"CNPJ\", uf as \"UF\", situacao_certificado as \"Situação\",\ncertificado_valido_ate as \"Validade\", dias_para_vencimento as \"Dias restantes\",\nsituacao_monitoramento as \"Monitor\", situacao_licenca as \"Licença\"\nfrom observabilidade.tenants_resumo order by certificado_valido_ate nulls first",
+          "format": "table"
+        }
+      ],
+      "type": "table",
+      "options": {
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Dias restantes",
+            "desc": false
+          }
+        ],
+        "showHeader": true
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 15,
+      "gridPos": {
+        "y": 32,
+        "w": 8,
+        "x": 0,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Situação fiscal dos documentos",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select situacao as \"Situação\", quantidade as \"Quantidade\" from observabilidade.documentos_por_situacao order by quantidade desc",
+          "format": "table"
+        }
+      ],
+      "type": "barchart",
+      "options": {
+        "stacking": "none",
+        "barRadius": 0,
+        "orientation": "horizontal",
+        "barWidth": 0.8,
+        "showValue": "auto",
+        "fullHighlight": false,
+        "legend": {
+          "placement": "bottom",
+          "showLegend": true,
+          "displayMode": "list"
+        },
+        "tooltip": {
+          "sort": "desc",
+          "mode": "multi"
+        },
+        "groupWidth": 0.7
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "id": 16,
+      "gridPos": {
+        "y": 32,
+        "w": 8,
+        "x": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Atividade recente por tenant",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select empresa, documentos_24h as \"24 horas\", documentos_7d as \"7 dias\", documentos_30d as \"30 dias\" from observabilidade.tenants_resumo order by documentos_30d desc",
+          "format": "table"
+        }
+      ],
+      "type": "barchart",
+      "options": {
+        "stacking": "none",
+        "barRadius": 0,
+        "orientation": "horizontal",
+        "barWidth": 0.8,
+        "showValue": "auto",
+        "fullHighlight": false,
+        "legend": {
+          "placement": "bottom",
+          "showLegend": true,
+          "displayMode": "list"
+        },
+        "tooltip": {
+          "sort": "desc",
+          "mode": "multi"
+        },
+        "groupWidth": 0.7
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": []
+      },
+      "id": 17,
+      "gridPos": {
+        "y": 32,
+        "w": 8,
+        "x": 16,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Pendências operacionais",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select empresa as \"Empresa\", situacao_monitoramento as \"Monitor\", situacao_licenca as \"Licença\",\nsituacao_certificado as \"Certificado\", monitoramento_atrasado as \"Atrasado\", possui_erro as \"Com erro\",\nfalhas as \"Falhas\", bloqueios_sefaz as \"Bloqueios SEFAZ\"\nfrom observabilidade.tenants_resumo\nwhere situacao_monitoramento <> 'ativo' or situacao_licenca = 'restrito'\nor situacao_certificado <> 'valido' or monitoramento_atrasado or possui_erro\norder by falhas desc, empresa",
+          "format": "table"
+        }
+      ],
+      "type": "table",
+      "options": {
+        "cellHeight": "sm",
+        "sortBy": [],
+        "showHeader": true
+      }
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyBRL"
+              }
+            ],
+            "matcher": {
+              "id": "byName",
+              "options": "Valor"
+            }
+          }
+        ]
+      },
+      "id": 18,
+      "gridPos": {
+        "y": 40,
+        "w": 24,
+        "x": 0,
+        "h": 12
+      },
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "dados-fisconexa"
+      },
+      "title": "Notas monitoradas recentemente",
+      "targets": [
+        {
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "dados-fisconexa"
+          },
+          "rawSql": "select monitorada_em as \"Monitorada em\", empresa as \"Tenant\", chave_acesso as \"Chave\",\nnome_emitente as \"Emitente\", cnpj_emitente as \"CNPJ emitente\", emitida_em as \"Emitida em\",\nvalor_total as \"Valor\", situacao as \"Situação\", xml_baixado as \"XML\"\nfrom observabilidade.documentos_recentes order by monitorada_em desc limit 100",
+          "format": "table"
+        }
+      ],
+      "type": "table",
+      "options": {
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Monitorada em",
+            "desc": true
+          }
+        ],
+        "showHeader": true
+      }
+    }
+  ],
+  "refresh": "30s",
+  "uid": "fisconexa-tenants-fiscal",
+  "tags": [
+    "fisconexa",
+    "tenants",
+    "fiscal"
+  ],
+  "schemaVersion": 41,
+  "weekStart": "",
+  "editable": true,
+  "templating": {
+    "list": []
+  },
+  "fiscalYearStartMonth": 0,
+  "title": "FiscoNexa - Tenants e Fiscal"
+}

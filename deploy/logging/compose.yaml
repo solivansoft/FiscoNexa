@@ -16,6 +16,7 @@ services:
     mem_limit: 768m
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Defina a senha administrativa}
+      GRAFANA_FISCONEXA_DB_PASSWORD: ${GRAFANA_FISCONEXA_DB_PASSWORD:?Defina a senha de leitura do FiscoNexa}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_SERVER_ROOT_URL: ${LOGS_PUBLIC_URL:?Defina a URL publica}

@@ -27,6 +27,12 @@ e consulta a cada 15 segundos os Node Exporters ligados somente aos enderecos
 WireGuard. O dashboard `dashboards/saude-vps.json` mostra disponibilidade, CPU,
 memoria, disco, swap, carga, rede, I/O e uptime das tres VPS.
 
+O dashboard `dashboards/fisconexa-tenants-fiscal.json` apresenta tenants,
+licencas, certificados, monitoramento e documentos. O datasource PostgreSQL
+usa o usuario `grafana_fisconexa`, que possui acesso somente as views do schema
+`observabilidade`. Informe sua senha em
+`GRAFANA_FISCONEXA_DB_PASSWORD`; ela nao deve ser versionada.
+
 | VPS | Endpoint privado |
 | --- | --- |
 | dados | `10.77.0.1:9100` |
