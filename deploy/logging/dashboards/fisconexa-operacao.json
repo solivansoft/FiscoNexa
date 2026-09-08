@@ -35,7 +35,7 @@
       "id": 3,
       "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [{"datasource": {"type": "loki", "uid": "logs-fisconexa"}, "editorMode": "code", "expr": "sum(sum_over_time({projeto=\"fisconexa\",servico=\"worker\"} | json evento=\"evento\", tarefas=\"dados.tarefas_processadas\" | evento=\"ciclo_worker_concluido\" | unwrap tarefas [24h])) or vector(0)", "instant": true, "legendFormat": "Tarefas", "queryType": "instant", "refId": "A"}],
-      "title": "Tarefas fiscais - 24h",
+      "title": "Trabalhos do worker - 24h",
       "type": "stat"
     },
     {
@@ -75,7 +75,7 @@
       "id": 7,
       "options": {"legend": {"calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
       "targets": [{"datasource": {"type": "loki", "uid": "logs-fisconexa"}, "editorMode": "code", "expr": "sum(sum_over_time({projeto=\"fisconexa\",servico=\"worker\"} | json evento=\"evento\", tarefas=\"dados.tarefas_processadas\" | evento=\"ciclo_worker_concluido\" | unwrap tarefas [$__auto])) or vector(0)", "legendFormat": "Tarefas processadas", "queryType": "range", "refId": "A"}],
-      "title": "Trabalho fiscal por intervalo",
+      "title": "Trabalhos do worker por intervalo",
       "type": "timeseries"
     },
     {

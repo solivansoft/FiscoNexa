@@ -33,6 +33,12 @@ usa o usuario `grafana_fisconexa`, que possui acesso somente as views do schema
 `observabilidade`. Informe sua senha em
 `GRAFANA_FISCONEXA_DB_PASSWORD`; ela nao deve ser versionada.
 
+O dashboard `dashboards/fisconexa-visao-360.json` consolida os indicadores de
+operacao fiscal, uso geral da API, filas do ERP, lacunas de NSU, manifestacoes,
+qualidade dos documentos, licencas, integracoes, capacidade e infraestrutura.
+Os links no topo levam aos paineis especializados quando for necessario
+investigar um indicador.
+
 | VPS | Endpoint privado |
 | --- | --- |
 | dados | `10.77.0.1:9100` |
